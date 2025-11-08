@@ -14,23 +14,23 @@
                 <i data-lucide="book-heart"></i>
                 <span class="logo-text">LibraryHub</span>
             </div>
-            <button class="sidebar-btn active">
+            <button class="sidebar-btn active" data-section="dashboard">
                 <i data-lucide="layout-dashboard"></i>
                 <span>Dashboard</span>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" data-section="books">
                 <i data-lucide="book"></i>
                 <span>Books</span>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" data-section="students">
                 <i data-lucide="users"></i>
                 <span>Students</span>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" data-section="checkouts">
                 <i data-lucide="arrow-left-right"></i>
                 <span>Checkouts</span>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" data-section="settings">
                 <i data-lucide="settings"></i>
                 <span>Settings</span>
             </button>
@@ -50,54 +50,100 @@
             </header>
 
             <main class="content-area">
-                <div class="dashboard-header">
-                    <h1>Admin Dashboard</h1>
-                    <p>Manage your library system</p>
+                <div id="dashboard-section" class="content-section">
+                    <div class="dashboard-header">
+                        <h1>Admin Dashboard</h1>
+                        <p>Manage your library system</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="card-content">
+                                <p class="card-title">Total Books</p>
+                                <p id="stats-total-books" class="card-value">0</p>
+                                <p class="card-description">Books in library</p>
+                            </div>
+                            <div class="card-icon-wrapper icon-total">
+                                <i data-lucide="book-open"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="card-content">
+                                <p class="card-title">Available</p>
+                                <p id="stats-available-books" class="card-value">0</p>
+                                <p class="card-description">Ready to checkout</p>
+                            </div>
+                            <div class="card-icon-wrapper icon-available">
+                                <i data-lucide="book-marked"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="card-content">
+                                <p class="card-title">Checked Out</p>
+                                <p id="stats-checked-out" class="card-value">0</p>
+                                <p class="card-description">Currently borrowed</p>
+                            </div>
+                            <div class="card-icon-wrapper icon-checked-out">
+                                <i data-lucide="clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="card-content">
+                                <p class="card-title">Students</p>
+                                <p id="stats-total-students" class="card-value">1</p>
+                                <p class="card-description">Registered users</p>
+                            </div>
+                            <div class="card-icon-wrapper icon-students">
+                                <i data-lucide="users"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="card-content">
-                            <p class="card-title">Total Books</p>
-                            <p id="stats-total-books" class="card-value">0</p>
-                            <p class="card-description">Books in library</p>
-                        </div>
-                        <div class="card-icon-wrapper icon-total">
-                            <i data-lucide="book-open"></i>
-                        </div>
+                <div id="books-section" class="content-section" style="display: none;">
+                    <div class="header-with-action">
+                        <h2>Manage Books</h2>
+                        <button id="add-book-btn" class="add-btn">
+                            <i data-lucide="plus"></i>
+                            <span>Add New Book</span>
+                        </button>
                     </div>
-                    <div class="stat-card">
-                        <div class="card-content">
-                            <p class="card-title">Available</p>
-                            <p id="stats-available-books" class="card-value">0</p>
-                            <p class="card-description">Ready to checkout</p>
-                        </div>
-                        <div class="card-icon-wrapper icon-available">
-                            <i data-lucide="book-marked"></i>
-                        </div>
+                    <div id="add-book-form-container" style="display: none;">
+                        <form id="add-book-form" class="add-form">
+                            <h3>Add a New Book</h3>
+                            <div class="form-grid">
+                                <input type="text" name="title" placeholder="Title" required>
+                                <input type="text" name="author" placeholder="Author" required>
+                                <input type="text" name="isbn" placeholder="ISBN" required>
+                                <input type="text" name="genre" placeholder="Genre">
+                                <input type="number" name="quantity" placeholder="Quantity" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Save Book</button>
+                                <button type="button" id="cancel-add-book-btn" class="btn-secondary">Cancel</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="stat-card">
-                        <div class="card-content">
-                            <p class="card-title">Checked Out</p>
-                            <p id="stats-checked-out" class="card-value">0</p>
-                            <p class="card-description">Currently borrowed</p>
-                        </div>
-                        <div class="card-icon-wrapper icon-checked-out">
-                            <i data-lucide="clock"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="card-content">
-                            <p class="card-title">Students</p>
-                            <p id="stats-total-students" class="card-value">1</p>
-                            <p class="card-description">Registered users</p>
-                        </div>
-                        <div class="card-icon-wrapper icon-students">
-                            <i data-lucide="users"></i>
-                        </div>
+                    <div class="book-list-container">
+                        <h3>All Books</h3>
+                        <table id="books-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>ISBN</th>
+                                    <th>Genre</th>
+                                    <th>Available</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body">
+                                <!-- Book rows will be inserted here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                </div>
+
             </main>
         </div>
     </div>
