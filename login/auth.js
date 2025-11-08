@@ -15,9 +15,8 @@ loginForm.addEventListener("submit", async (event) => {
   if (error) {
     alert(`Error: ${error.message}`);
   } else {
-    alert("Login successful!");
     // You can redirect the user to another page here
-    window.location.href = '/admin/dashboard.html';
+    window.location.href = "/admin/dashboard.html";
     console.log(data);
   }
 });
