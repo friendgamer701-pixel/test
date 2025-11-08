@@ -1,0 +1,228 @@
+/* --- 0. CSS Variables --- */
+:root {
+    --color-background: #F8F7F4;
+    --color-card: #FFFFFF;
+    --color-border: #E5E7EB;
+    --color-text: #111827;
+    --color-text-muted: #6B7280;
+    --color-primary: #329A9A;
+    --color-primary-hover: #2a8080;
+    --color-primary-text: #FFFFFF;
+    --color-icon-available: #F2C94C;
+    --color-icon-students: #F2994A;
+}
+
+/* --- 1. General Setup --- */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- 2. Top Bar --- */
+.top-bar {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--color-card);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+}
+
+.logo-container i {
+    margin-right: 0.5rem;
+}
+
+.menu-toggle {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    display: flex;
+    padding: 0.5rem;
+    margin-left: 1.5rem;
+    cursor: pointer;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-left: 1.5rem;
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+.search-container i {
+    color: var(--color-text-muted);
+    margin-right: 0.75rem;
+}
+
+#search-box {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 1rem;
+    width: 100%;
+}
+
+#search-box::placeholder {
+    color: var(--color-text-muted);
+}
+
+.top-bar-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    color: var(--color-text-muted);
+    padding: 0.6rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.action-btn.active, .action-btn:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+}
+
+/* --- 3. Content Area --- */
+.content-area {
+    padding: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.dashboard-header p {
+    color: var(--color-text-muted);
+    margin: 0.25rem 0 0;
+}
+
+/* --- 4. Stats Grid --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background-color: var(--color-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card-title, .card-description {
+    color: var(--color-text-muted);
+}
+
+/* Other styles remain the same */
+
+.card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    color: var(--color-text);
+}
+
+.card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary-text);
+}
+
+.icon-total { background-color: var(--color-primary); }
+.icon-available { background-color: var(--color-icon-available); }
+.icon-checked-out { background-color: var(--color-primary); }
+.icon-students { background-color: var(--color-icon-students); }
+
+/* --- 5. Tabs --- */
+.tabs-container, .panel-header, .panel-actions, .search-and-filter, .btn, .tab-trigger {
+    /* These styles can largely remain the same as they use the variables */
+}
+
+.tabs-list {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tab-trigger {
+    color: var(--color-text-muted);
+}
+
+.tab-trigger.active, .tab-trigger:hover {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary);
+}
+
+.tab-panel {
+    background-color: var(--color-card);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: none; /* Add this to hide by default */
+}
+
+.tab-panel.active { 
+    display: block; 
+}
+
+.btn-export {
+    background-color: var(--color-card);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-add {
+    background-color: var(--color-primary);
+    color: var(--color-primary-text);
+}
+
+.btn-add:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.search-and-filter input, .search-and-filter select {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-background);
+}
+
+i[data-lucide] {
+    width: 20px;
+    height: 20px;
+}
