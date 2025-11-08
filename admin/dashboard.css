@@ -10,6 +10,7 @@
     --color-primary-text: #FFFFFF;
     --color-icon-available: #F2C94C;
     --color-icon-students: #F2994A;
+    --sidebar-width: 250px;
 }
 
 /* --- 1. General Setup --- */
@@ -22,29 +23,63 @@ body {
 
 .page-container {
     display: flex;
-    flex-direction: column;
     min-height: 100vh;
 }
 
-/* --- 2. Top Bar --- */
+/* --- 2. Sidebar --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--color-card);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    transition: width 0.3s ease, padding 0.3s ease;
+}
+
+.sidebar .logo-container {
+    margin-bottom: 2rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    white-space: nowrap;
+}
+
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 1rem;
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.sidebar-btn.active, .sidebar-btn:hover {
+    background-color: var(--color-primary-hover);
+    color: var(--color-primary-text);
+}
+
+/* --- 3. Main Content --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 4. Top Bar --- */
 .top-bar {
     display: flex;
     align-items: center;
     padding: 0.75rem 1.5rem;
     background-color: var(--color-card);
     border-bottom: 1px solid var(--color-border);
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--color-primary);
-}
-
-.logo-container i {
-    margin-right: 0.5rem;
+    gap: 1rem; /* Added gap between elements */
 }
 
 .menu-toggle {
@@ -54,7 +89,6 @@ body {
     color: var(--color-text-muted);
     display: flex;
     padding: 0.5rem;
-    margin-left: 1.5rem;
     cursor: pointer;
 }
 
@@ -65,7 +99,6 @@ body {
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
-    margin-left: 1.5rem;
     flex-grow: 1;
     max-width: 500px;
 }
@@ -111,7 +144,7 @@ body {
     color: var(--color-primary-text);
 }
 
-/* --- 3. Content Area --- */
+/* --- 5. Content Area --- */
 .content-area {
     padding: 2rem;
 }
@@ -128,7 +161,7 @@ body {
     margin: 0.25rem 0 0;
 }
 
-/* --- 4. Stats Grid --- */
+/* --- 6. Stats Grid --- */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -149,8 +182,6 @@ body {
 .card-title, .card-description {
     color: var(--color-text-muted);
 }
-
-/* Other styles remain the same */
 
 .card-value {
     font-size: 2.5rem;
@@ -174,52 +205,12 @@ body {
 .icon-checked-out { background-color: var(--color-primary); }
 .icon-students { background-color: var(--color-icon-students); }
 
-/* --- 5. Tabs --- */
-.tabs-container, .panel-header, .panel-actions, .search-and-filter, .btn, .tab-trigger {
-    /* These styles can largely remain the same as they use the variables */
-}
-
-.tabs-list {
-    border-bottom: 1px solid var(--color-border);
-}
-
-.tab-trigger {
-    color: var(--color-text-muted);
-}
-
-.tab-trigger.active, .tab-trigger:hover {
-    color: var(--color-text);
-    border-bottom-color: var(--color-primary);
-}
-
-.tab-panel {
-    background-color: var(--color-card);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    display: none; /* Add this to hide by default */
-}
-
-.tab-panel.active { 
-    display: block; 
-}
-
-.btn-export {
-    background-color: var(--color-card);
-    border-color: var(--color-border);
-    color: var(--color-text);
-}
-
-.btn-add {
-    background-color: var(--color-primary);
-    color: var(--color-primary-text);
-}
-
-.btn-add:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.search-and-filter input, .search-and-filter select {
-    border: 1px solid var(--color-border);
-    background-color: var(--color-background);
+/* --- 7. Sidebar Toggling --- */
+.page-container.sidebar-hidden .sidebar {
+    width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    overflow: hidden;
 }
 
 i[data-lucide] {

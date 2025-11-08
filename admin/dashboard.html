@@ -9,79 +9,97 @@
 </head>
 <body>
     <div class="page-container">
-        <header class="top-bar">
+        <div class="sidebar">
             <div class="logo-container">
                 <i data-lucide="book-heart"></i>
                 <span class="logo-text">LibraryHub</span>
             </div>
-            <button class="menu-toggle">
-                <i data-lucide="menu"></i>
+            <button class="sidebar-btn active">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard</span>
             </button>
-            <div class="search-container">
-                <i data-lucide="search"></i>
-                <input type="text" id="search-box" placeholder="Title, Author, Series, Genre, or ISBN...">
-            </div>
-            <div class="top-bar-actions">
-                <button class="action-btn"><i data-lucide="bar-chart-3"></i></button>
-                <button class="action-btn"><i data-lucide="settings"></i></button>
-                <button class="action-btn"><i data-lucide="heart"></i></button>
-                <button class="action-btn active"><i data-lucide="brain-circuit"></i></button>
-                <button class="action-btn"><i data-lucide="info"></i></button>
-                <button class="action-btn"><i data-lucide="user"></i></button>
-                <button class="action-btn"><i data-lucide="log-out"></i></button>
-            </div>
-        </header>
+            <button class="sidebar-btn">
+                <i data-lucide="book"></i>
+                <span>Books</span>
+            </button>
+            <button class="sidebar-btn">
+                <i data-lucide="users"></i>
+                <span>Students</span>
+            </button>
+            <button class="sidebar-btn">
+                <i data-lucide="arrow-left-right"></i>
+                <span>Checkouts</span>
+            </button>
+            <button class="sidebar-btn">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+        <div class="main-content">
+            <header class="top-bar">
+                <button class="menu-toggle">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="search-container">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="search-box" placeholder="Title, Author, Series, Genre, or ISBN...">
+                </div>
+                <div class="top-bar-actions">
+                    <button class="action-btn"><i data-lucide="log-out"></i></button>
+                </div>
+            </header>
 
-        <main class="content-area">
-            <div class="dashboard-header">
-                <h1>Admin Dashboard</h1>
-                <p>Manage your library system</p>
-            </div>
+            <main class="content-area">
+                <div class="dashboard-header">
+                    <h1>Admin Dashboard</h1>
+                    <p>Manage your library system</p>
+                </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="card-content">
-                        <p class="card-title">Total Books</p>
-                        <p id="stats-total-books" class="card-value">0</p>
-                        <p class="card-description">Books in library</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="card-content">
+                            <p class="card-title">Total Books</p>
+                            <p id="stats-total-books" class="card-value">0</p>
+                            <p class="card-description">Books in library</p>
+                        </div>
+                        <div class="card-icon-wrapper icon-total">
+                            <i data-lucide="book-open"></i>
+                        </div>
                     </div>
-                    <div class="card-icon-wrapper icon-total">
-                        <i data-lucide="book-open"></i>
+                    <div class="stat-card">
+                        <div class="card-content">
+                            <p class="card-title">Available</p>
+                            <p id="stats-available-books" class="card-value">0</p>
+                            <p class="card-description">Ready to checkout</p>
+                        </div>
+                        <div class="card-icon-wrapper icon-available">
+                            <i data-lucide="book-marked"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="card-content">
+                            <p class="card-title">Checked Out</p>
+                            <p id="stats-checked-out" class="card-value">0</p>
+                            <p class="card-description">Currently borrowed</p>
+                        </div>
+                        <div class="card-icon-wrapper icon-checked-out">
+                            <i data-lucide="clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="card-content">
+                            <p class="card-title">Students</p>
+                            <p id="stats-total-students" class="card-value">1</p>
+                            <p class="card-description">Registered users</p>
+                        </div>
+                        <div class="card-icon-wrapper icon-students">
+                            <i data-lucide="users"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="card-content">
-                        <p class="card-title">Available</p>
-                        <p id="stats-available-books" class="card-value">0</p>
-                        <p class="card-description">Ready to checkout</p>
-                    </div>
-                    <div class="card-icon-wrapper icon-available">
-                        <i data-lucide="book-marked"></i>
-                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="card-content">
-                        <p class="card-title">Checked Out</p>
-                        <p id="stats-checked-out" class="card-value">0</p>
-                        <p class="card-description">Currently borrowed</p>
-                    </div>
-                    <div class="card-icon-wrapper icon-checked-out">
-                        <i data-lucide="clock"></i>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="card-content">
-                        <p class="card-title">Students</p>
-                        <p id="stats-total-students" class="card-value">1</p>
-                        <p class="card-description">Registered users</p>
-                    </div>
-                    <div class="card-icon-wrapper icon-students">
-                        <i data-lucide="users"></i>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
