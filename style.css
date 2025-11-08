@@ -1,0 +1,255 @@
+/* --- 0. CSS Variables & Basic Setup --- */
+:root {
+    /* Define colors from the code (approximated from Tailwind names) */
+    --color-background: #F8F7F4; /* A warm off-white */
+    --color-muted: #F1F1F1;      /* A slightly different off-white for the gradient */
+    --color-card: #FFFFFF;
+    --color-border: #E5E7EB;    /* Light gray */
+    --color-text: #111827;      /* Dark text */
+    --color-text-muted: #6B7280;/* Gray text */
+    
+    /* Custom 'Library' theme colors */
+    --color-primary: #329A9A;        /* The main teal color */
+    --color-primary-hover: #2a8080;  /* Darker teal for hover */
+    --color-primary-text: #FFFFFF;    /* Text on primary color */
+    --gradient-primary: linear-gradient(to right, #329A9A, #2a8080);
+
+    /* Shadows */
+    --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.03);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-large: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Basic Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-text);
+    /* The gradient background from the React code */
+    background: linear-gradient(to bottom right, var(--color-background), var(--color-muted), var(--color-background));
+}
+
+/* --- 1. Re-usable Components --- */
+
+/* Container class (max-w-7xl mx-auto px-4 sm:px-6 lg:px-8) */
+.container {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Button styles (re-creating the 'Button' component) */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-text);
+    box-shadow: var(--shadow-medium);
+}
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btn-outline {
+    background-color: var(--color-card);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+.btn-outline:hover {
+    background-color: #f9f9f9;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+/* Icon Backgrounds (w-10 h-10, w-24 h-24, etc.) */
+.icon-bg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    color: var(--color-primary-text);
+}
+
+/* --- 2. Navigation Bar --- */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.8); /* bg-card/80 */
+    backdrop-filter: blur(4px); /* backdrop-blur-sm */
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 4rem; /* h-16 */
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* space-x-2 */
+}
+
+.logo-text {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700;
+}
+
+.icon-bg-nav {
+    width: 2.5rem; /* w-10 */
+    height: 2.5rem; /* h-10 */
+    border-radius: 0.75rem; /* rounded-xl */
+}
+
+.icon-nav {
+    width: 1.5rem; /* h-6 w-6 */
+    height: 1.5rem;
+}
+
+/* --- 3. Main Content & Hero --- */
+.page-content {
+    padding-top: 4rem; /* py-16 */
+    padding-bottom: 4rem;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 4rem; /* mb-16 */
+}
+
+.icon-bg-hero {
+    width: 6rem; /* w-24 */
+    height: 6rem; /* h-24 */
+    border-radius: 1.5rem; /* rounded-3xl */
+    box-shadow: var(--shadow-large);
+    margin: 0 auto 1.5rem; /* mx-auto mb-6 */
+}
+
+.icon-hero {
+    width: 3rem; /* h-12 w-12 */
+    height: 3rem;
+}
+
+h1 {
+    font-size: 3rem; /* text-5xl */
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.subtitle {
+    font-size: 1.25rem; /* text-xl */
+    color: var(--color-text-muted);
+    max-width: 42rem; /* max-w-2xl */
+    margin: 0 auto 2rem; /* mx-auto mb-8 */
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* gap-4 */
+}
+
+/* --- 4. Features Section --- */
+.features-grid {
+    display: grid;
+    gap: 2rem; /* gap-8 */
+    margin-top: 5rem; /* mt-20 */
+}
+
+.card {
+    background-color: var(--color-card);
+    padding: 2rem; /* p-8 */
+    border-radius: 1rem; /* rounded-2xl */
+    box-shadow: var(--shadow-medium);
+    transition: all 0.3s ease;
+}
+.card:hover {
+    box-shadow: var(--shadow-large);
+}
+
+.icon-bg-card {
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    border-radius: 1rem; /* rounded-2xl */
+    margin-bottom: 1.5rem; /* mb-6 */
+}
+
+.icon-card {
+    width: 2rem; /* h-8 w-8 */
+    height: 2rem;
+}
+
+.card h3 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600;
+    margin-bottom: 0.75rem; /* mb-3 */
+}
+
+.card p {
+    color: var(--color-text-muted);
+}
+
+/* --- 5. Footer --- */
+.footer {
+    border-top: 1px solid var(--color-border);
+    margin-top: 5rem; /* mt-20 */
+    padding: 2rem 0; /* py-8 */
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+/* --- 6. Responsive Design --- */
+
+/* For tablets and up (md:grid-cols-3) */
+@media (min-width: 768px) {
+    .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    h1 {
+        font-size: 3.75rem; /* md:text-6xl */
+    }
+}
+
+/* For small phones (sm:px-6) */
+@media (min-width: 640px) {
+    .container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+/* For laptops (lg:px-8) */
+@media (min-width: 1024px) {
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
