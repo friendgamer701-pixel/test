@@ -626,3 +626,60 @@ i[data-lucide] {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
+
+/* ============================
+  --- (NEW) 12. Tom Select Customization ---
+  ============================
+  This section makes the new searchable dropdown
+  match the style of your other form inputs.
+*/
+
+/* Styles the main input box */
+.modal-content .ts-control {
+  /* Copy visual styles from .form-group input */
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: var(--color-card);
+  color: var(--color-text);
+  box-shadow: none; /* Remove Tom Select's default shadow */
+}
+
+/* Style for when the input is focused */
+.modal-content .ts-control.focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Style for the dropdown menu itself */
+.modal-content .ts-dropdown {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-card);
+  box-shadow: var(--shadow-medium);
+  margin-top: 0.25rem;
+}
+
+/* Style for the items in the dropdown */
+.modal-content .ts-option {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Style for hovered or active item */
+.modal-content .ts-option.active,
+.modal-content .ts-option:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* Style for the placeholder text */
+.modal-content .ts-control .ts-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}

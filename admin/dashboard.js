@@ -61,6 +61,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const studentSelect = document.getElementById("student-select");
   const dueDateInput = document.getElementById("due-date-select");
 
+  // --- (NEW) This variable will hold our searchable dropdown instance ---
+  let studentSelectInstance = null;
+  // --- END NEW ---
+
   // --- Event Listeners -- -
   if (menuToggle && pageContainer) {
     menuToggle.addEventListener("click", () => {
@@ -299,7 +303,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (document.getElementById("books-section").style.display === "block") {
         fetchBooks(searchTerm);
       }
-      if (document.getElementById("students-section").style.display === "block") {
+      if (
+        document.getElementById("students-section").style.display === "block"
+      ) {
         fetchStudents(searchTerm);
       }
     });
@@ -455,7 +461,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const bookTitle = menuItem
           .closest("tr")
           .querySelector("td:first-child").textContent;
-        
+
         // Use a custom modal for confirmation instead of alert/confirm
         // For simplicity, we'll keep confirm() but it's not ideal
         if (confirm(`Are you sure you want to delete "${bookTitle}"?`)) {
@@ -538,53 +544,66 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // -- -
-  // --- [START] CHECKOUT MODAL LOGIC (FIXED) ---
+  // --- [START] (MODIFIED) CHECKOUT MODAL LOGIC ---
   // -- -
 
   /**
-   * [FIXED]
-   * Fetches students from your 'student' table and populates the dropdown.
+   * [MODIFIED]
+   * Fetches students and populates the Tom Select dropdown.
    */
   const fetchAndPopulateStudents = async () => {
-    studentSelect.innerHTML = '<option value="">Loading students...</option>';
+    // 1. Guard clause: Do nothing if Tom Select isn't ready
+    if (!studentSelectInstance) return;
 
-    // --- !!! THIS QUERY IS NOW FIXED FOR YOUR 'student' TABLE !!! ---
+    // 2. Clear old data and set loading state
+    studentSelectInstance.clear(); // Clear selected item
+    studentSelectInstance.clearOptions(); // Clear all old options from the list
+    studentSelectInstance.disable(); // Disable input while loading
+    studentSelectInstance.settings.placeholder = "Loading students..."; // Show loading text
+    studentSelectInstance.refreshOptions(false); // Update UI
+
+    // 3. Fetch data from Supabase (same as before)
     const { data: students, error } = await supabase
-      .from("student") // 1. Changed to your 'student' table
-      .select("admission_no, student_name, email"); // 2. Changed to your columns (assuming student_name)
+      .from("student")
+      .select("admission_no, student_name, email");
 
+    // 4. Handle error state
     if (error) {
       console.error("Error fetching students:", error);
-      studentSelect.innerHTML =
-        '<option value="">Error loading students</option>';
+      studentSelectInstance.settings.placeholder = "Error loading students";
+      studentSelectInstance.enable(); // Re-enable on error
+      studentSelectInstance.refreshOptions(false);
       return;
     }
 
+    // 5. Handle no students found
     if (students.length === 0) {
-      studentSelect.innerHTML = '<option value="">No students found</option>';
+      studentSelectInstance.settings.placeholder = "No students found";
+      studentSelectInstance.enable(); // Re-enable
+      studentSelectInstance.refreshOptions(false);
       return;
     }
 
-    studentSelect.innerHTML = '<option value="">Select a student...</option>';
+    // 6. Populate Tom Select with new options
     students.forEach((student) => {
-      // 3. Use student_name, fall back to email or admission_no
-      //    (Change 'student_name' if your column is different, e.g., 'name')
       const studentName =
         student.student_name || student.email || `ID: ${student.admission_no}`;
-        
-      const option = document.createElement("option");
-      
-      // 4. Set the option's VALUE to the admission_no
-      option.value = student.admission_no;
-      
-      // 5. Set the option's TEXT to be descriptive
-      option.textContent = `${studentName} (${student.admission_no})`;
-      
-      studentSelect.appendChild(option);
+
+      studentSelectInstance.addOption({
+        value: student.admission_no, // The actual value
+        text: `${studentName} (${student.admission_no})`, // The searchable text
+      });
     });
+
+    // 7. Re-enable the input and set final placeholder
+    studentSelectInstance.enable();
+    studentSelectInstance.settings.placeholder =
+      "Type to search for a student...";
+    studentSelectInstance.refreshOptions(false);
   };
 
   /**
+   * [MODIFIED]
    * Opens the checkout modal and prepares it.
    */
   const openCheckoutModal = (bookId, bookTitle) => {
@@ -597,31 +616,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     const twoWeeks = new Date(new Date().setDate(today.getDate() + 14));
     dueDateInput.value = twoWeeks.toISOString().split("T")[0];
 
+    // --- (NEW) Initialize Tom Select if it's the first time ---
+    if (!studentSelectInstance) {
+      studentSelectInstance = new TomSelect("#student-select", {
+        create: false, // Don't allow creating new students
+        sortField: {
+          field: "text",
+          direction: "asc",
+        },
+        placeholder: "Type to search for a student...",
+      });
+    }
+    // --- END NEW ---
+
     // Fetch students and populate the dropdown
     fetchAndPopulateStudents();
   };
 
   /**
+   * [MODIFIED]
    * Closes the checkout modal and resets the form.
    */
   const closeCheckoutModal = () => {
     checkoutModal.style.display = "none";
     checkoutForm.reset();
+
+    // --- (NEW) Clear the Tom Select input field ---
+    if (studentSelectInstance) {
+      studentSelectInstance.clear();
+    }
+    // --- END NEW ---
   };
 
   /**
-   * [FIXED]
+   * [UNCHANGED]
    * Handles the checkout form submission.
+   * This function works as-is because Tom Select updates the
+   * original <select> element's value.
    */
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     const bookId = checkoutBookIdInput.value;
-    
-    // --- FIX: Changed variable name for clarity ---
-    const admissionNo = studentSelect.value; // This is now an admission_no
+
+    // This line still works!
+    const admissionNo = studentSelect.value; // This is the admission_no
     const dueDate = dueDateInput.value;
 
-    if (!admissionNo) { // <-- FIXED: Check new variable
+    if (!admissionNo) {
       alert("Please select a student.");
       return;
     }
@@ -660,10 +701,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // 3. Create checkout record
-    // --- FIX: Changed 'user_id' to 'admission_no' ---
     const { error: insertError } = await supabase.from("checkouts").insert({
       book_id: bookId,
-      admission_no: admissionNo, // <-- FIXED: Saves the admission_no
+      admission_no: admissionNo,
       due_date: dueDate,
       status: "checked_out",
       checkout_date: new Date().toISOString(),
@@ -686,7 +726,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Realtime listener will update stats
   };
 
-  // --- Add Event Listeners for the Modal ---
+  // --- Add Event Listeners for the Modal (UNCHANGED) ---
   if (checkoutForm) {
     checkoutForm.addEventListener("submit", handleCheckoutSubmit);
   }
@@ -701,7 +741,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-  // --- [END] NEW CHECKOUT MODAL LOGIC ---
+  // --- [END] MODIFIED CHECKOUT MODAL LOGIC ---
 
   // --- Initial Load ---
   // Default to dashboard section
