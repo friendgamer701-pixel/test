@@ -4,7 +4,7 @@
   channel = "stable-24.05"; # or "unstable"
 
   # Packages to make available in the environment.
-  packages = [ pkgs.supabase-cli, pkgs.python3 ];
+  packages = [ pkgs.supabase-cli pkgs.python3 ];
 
   # Environment variables to set in the development environment.
   # env = {
