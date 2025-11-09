@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sidebarBtns = document.querySelectorAll(".sidebar-btn");
   const dashboardSection = document.getElementById("dashboard-section");
   const contentFrame = document.getElementById("content-frame");
+  const searchInput = document.getElementById("search-box");
 
   const checkoutModal = document.getElementById("checkout-modal");
   const checkoutForm = document.getElementById("checkout-form");
@@ -293,6 +294,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (e.target === checkoutModal) {
         closeCheckoutModal();
       }
+    });
+  }
+
+  if (searchInput && contentFrame) {
+    searchInput.addEventListener("input", () => {
+      const searchTerm = searchInput.value.trim();
+      const contentWindow = contentFrame.contentWindow;
+
+      if (contentWindow) {
+        if (typeof contentWindow.fetchBooks === 'function') {
+          contentWindow.fetchBooks(searchTerm);
+        } else if (typeof contentWindow.fetchStudents === 'function') {
+          contentWindow.fetchStudents(searchTerm);
+        } else if (typeof contentWindow.fetchCheckouts === 'function') {
+          contentWindow.fetchCheckouts(searchTerm);
+        }
+      }
+    });
+
+    searchInput.addEventListener("focus", () => {
+        navigateToSection('books');
     });
   }
 
