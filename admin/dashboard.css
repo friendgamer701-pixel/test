@@ -433,9 +433,6 @@ i[data-lucide] {
   background-color: var(--color-primary-light);
 }
 
-/* ⬇️ --- FIX 1: HIDE UNWANTED LAST BORDER --- ⬇️
-  This removes the border from the last row to prevent a "double border"
-*/
 #books-table tbody tr:last-child th,
 #books-table tbody tr:last-child td {
   border-bottom: none;
@@ -551,7 +548,7 @@ i[data-lucide] {
 }
 
 /* ============================
-  --- [NEW] 11. Modal Styles ---
+  --- 11. Modal Styles ---
   ============================
 */
 .modal-overlay {
@@ -608,6 +605,19 @@ i[data-lucide] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background-color: var(--color-card);
   color: var(--color-text);
+  /* Added for iOS styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Add custom dropdown arrow for select */
+.form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 10 13 14 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding-right: 2.5rem; /* Make space for arrow */
 }
 
 .form-group select:focus,

@@ -9,7 +9,7 @@
       rel="stylesheet"
     />
     <!-- Make sure this CSS file path is correct -->
-    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="students.css" />
   </head>
   <body>
     <div class="page-container">
@@ -180,52 +180,79 @@
               </div>
             </div>
           </div>
-           <div id="students-section" class="content-section" style="display: none;">
-        <div class="header-with-action">
-          <h2>Manage Students</h2>
-          <button id="add-student-btn" class="add-btn">
-            <i data-lucide="plus"></i>
-            <span>Add New Student</span>
-          </button>
-        </div>
-        <div id="add-student-form-container" style="display: none;">
-          <form id="add-student-form" class="add-form">
-            <h3 id="student-form-title">Add a New Student</h3>
-            <input type="hidden" name="student_id" id="edit-student-id">
-            <div class="form-grid">
-              <input type="text" name="name" placeholder="Name" required>
-              <input type="text" name="admission_no" placeholder="Admission Number" required>
-              <input type="email" name="email" placeholder="Email" required>
-              <input type="text" name="department" placeholder="Department" required>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary" id="save-student-btn">
-                Save Student
-              </button>
-              <button type="button" id="cancel-add-student-btn" class="btn-secondary">
-                Cancel
+          <div
+            id="students-section"
+            class="content-section"
+            style="display: none"
+          >
+            <div class="header-with-action">
+              <h2>Manage Students</h2>
+              <button id="add-student-btn" class="add-btn">
+                <i data-lucide="plus"></i>
+                <span>Add New Student</span>
               </button>
             </div>
-          </form>
-        </div>
-        <div class="student-list-container">
-          <h3>All Students</h3>
-          <div class="table-wrapper">
-            <table id="students-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Admission Number</th>
-                  <th>Email</th>
-                  <th>Department</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="students-table-body"></tbody>
-            </table>
+            <div id="add-student-form-container" style="display: none">
+              <form id="add-student-form" class="add-form">
+                <h3 id="student-form-title">Add a New Student</h3>
+                <input type="hidden" name="student_id" id="edit-student-id" />
+                <div class="form-grid">
+                  <input type="text" name="name" placeholder="Name" required />
+                  <input
+                    type="text"
+                    name="admission_no"
+                    placeholder="Admission Number"
+                    required
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="department"
+                    placeholder="Department"
+                    required
+                  />
+                </div>
+                <div class="form-actions">
+                  <button
+                    type="submit"
+                    class="btn-primary"
+                    id="save-student-btn"
+                  >
+                    Save Student
+                  </button>
+                  <button
+                    type="button"
+                    id="cancel-add-student-btn"
+                    class="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div class="student-list-container">
+              <h3>All Students</h3>
+              <div class="table-wrapper">
+                <table id="students-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Admission Number</th>
+                      <th>Email</th>
+                      <th>Department</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-table-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
           <!-- Add other sections (Students, Checkouts, Settings) here as needed -->
         </main>
@@ -287,6 +314,6 @@
       If dashboard.js is in the same folder, this is correct.
       If it's in a parent 'js' folder, it might be '/js/dashboard.js'
     -->
-    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="students.js"></script>
   </body>
 </html>
