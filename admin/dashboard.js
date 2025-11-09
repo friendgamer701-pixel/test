@@ -124,42 +124,111 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addBookFormContainer = document.getElementById("add-book-form-container");
     const cancelAddBookBtn = document.getElementById("cancel-add-book-btn");
     const addBookForm = document.getElementById("add-book-form");
+
+    // --- UPDATED "Add Book" Button Listener ---
     if (addBookBtn) {
         addBookBtn.addEventListener("click", () => {
+            addBookForm.reset(); // Clear any old data
+            document.getElementById("edit-book-id").value = ""; // Ensure no ID
+            document.getElementById("form-title").textContent = "Add a New Book";
+            document.getElementById("save-book-btn").textContent = "Save Book";
             addBookFormContainer.style.display = "block";
         });
     }
+
+    // --- UPDATED "Cancel" Button Listener ---
     if (cancelAddBookBtn) {
         cancelAddBookBtn.addEventListener("click", () => {
             addBookFormContainer.style.display = "none";
             addBookForm.reset();
+            // Reset form UI back to "Add" mode
+            document.getElementById("edit-book-id").value = "";
+            document.getElementById("form-title").textContent = "Add a New Book";
+            document.getElementById("save-book-btn").textContent = "Save Book";
         });
     }
+
+    // --- UPDATED Form Submit Listener (Handles both Add and Edit) ---
     if (addBookForm) {
         addBookForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const formData = new FormData(addBookForm);
-            const book = {
+            const bookId = formData.get("book_id"); // Get the hidden ID
+
+            const bookData = {
                 title: formData.get("title"),
                 author: formData.get("author"),
                 isbn: formData.get("isbn"),
                 genre: formData.get("genre"),
                 total_copies: parseInt(formData.get("quantity"), 10),
-                available_copies: parseInt(formData.get("quantity"), 10),
             };
-            const { error } = await supabase.from("books").insert([book]);
-            if (error) {
-                console.error("Error adding book:", error);
-                alert(`Error adding book: ${error.message}`);
+
+            let error;
+            let successMessage = "";
+
+            if (bookId) {
+                // --- UPDATE (EDIT) LOGIC ---
+                
+                // We must calculate the new available_copies correctly
+                // new_available = new_total - (old_total - old_available)
+                const { data: oldBook, error: fetchError } = await supabase
+                    .from("books")
+                    .select("total_copies, available_copies")
+                    .eq("id", bookId)
+                    .single();
+                
+                if (fetchError) {
+                    console.error("Error fetching old book data:", fetchError);
+                    alert("Error updating book. Could not get old data.");
+                    return;
+                }
+
+                const checkedOutCount = oldBook.total_copies - oldBook.available_copies;
+                const newTotal = bookData.total_copies;
+
+                // Prevent setting total quantity lower than books already checked out
+                if (newTotal < checkedOutCount) {
+                    alert(`Cannot set total quantity to ${newTotal}. There are already ${checkedOutCount} books checked out.`);
+                    return;
+                }
+
+                bookData.available_copies = newTotal - checkedOutCount;
+                
+                const { error: updateError } = await supabase
+                    .from("books")
+                    .update(bookData)
+                    .eq("id", bookId);
+                error = updateError;
+                successMessage = "Book updated successfully!";
+
             } else {
+                // --- ADD (INSERT) LOGIC ---
+                bookData.available_copies = bookData.total_copies; // For new books
+                const { error: insertError } = await supabase.from("books").insert([bookData]);
+                error = insertError;
+                successMessage = "Book added successfully!";
+            }
+
+            // --- COMMON AFTER-SUBMIT LOGIC ---
+            if (error) {
+                console.error("Error saving book:", error);
+                alert(`Error saving book: ${error.message}`);
+            } else {
+                // Hide and reset the form
                 addBookFormContainer.style.display = "none";
                 addBookForm.reset();
-                searchInput.value = "";
-                fetchBooks();
-                alert("Book added successfully!");
+                document.getElementById("edit-book-id").value = "";
+                document.getElementById("form-title").textContent = "Add a New Book";
+                document.getElementById("save-book-btn").textContent = "Save Book";
+                
+                searchInput.value = ""; // Clear search
+                fetchBooks(); // Refresh book list
+                alert(successMessage);
+                // fetchStats() will be triggered by the realtime listener
             }
         });
     }
+
     if (searchInput) {
         searchInput.addEventListener("focus", () => {
             if (document.getElementById("books-section").style.display !== "block") {
@@ -228,6 +297,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         lucide.createIcons();
     };
+
+    // --- UPDATED Table Click Listener (Handles Delete and Edit) ---
     if (booksTableBody) {
         booksTableBody.addEventListener("click", async (e) => {
           // Find the button that was clicked, even if the user clicked the icon inside it
@@ -236,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
           const id = button.dataset.id;
           
-          // --- DELETE ACTION ---
+          // --- DELETE ACTION (Unchanged) ---
           if (button.classList.contains("delete-btn")) {
             // Get the book title from the first cell of the row
             const bookTitle = button.closest("tr").querySelector("td:first-child").textContent;
@@ -261,11 +332,37 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }
     
-          // --- EDIT ACTION ---
+          // --- UPDATED EDIT ACTION ---
           if (button.classList.contains("edit-btn")) {
-            // We can add the edit functionality here next
-            console.log("Edit button clicked for ID:", id);
-            alert("Edit functionality is not implemented yet.");
+            // 1. Fetch book data from Supabase
+            const { data: book, error } = await supabase
+                .from("books")
+                .select("*")
+                .eq("id", id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching book for edit:", error);
+                alert("Could not load book data to edit.");
+                return;
+            }
+
+            // 2. Populate the form with the book's data
+            addBookForm.querySelector('[name="title"]').value = book.title;
+            addBookForm.querySelector('[name="author"]').value = book.author;
+            addBookForm.querySelector('[name="isbn"]').value = book.isbn;
+            addBookForm.querySelector('[name="genre"]').value = book.genre;
+            addBookForm.querySelector('[name="quantity"]').value = book.total_copies;
+            
+            // 3. Set hidden ID and update UI for "edit mode"
+            document.getElementById("edit-book-id").value = book.id;
+            document.getElementById("form-title").textContent = "Edit Book";
+            document.getElementById("save-book-btn").textContent = "Update Book";
+
+            // 4. Show the form and scroll to it
+            addBookFormContainer.style.display = "block";
+            // Scroll to the top of the page to see the form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         });
       }

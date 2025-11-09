@@ -118,8 +118,11 @@
               </button>
             </div>
             <div id="add-book-form-container" style="display: none">
+              <!-- UPDATED FORM -->
               <form id="add-book-form" class="add-form">
-                <h3>Add a New Book</h3>
+                <h3 id="form-title">Add a New Book</h3>
+                <!-- This hidden input will store the ID of the book we are editing -->
+                <input type="hidden" name="book_id" id="edit-book-id" />
                 <div class="form-grid">
                   <input
                     type="text"
@@ -140,10 +143,13 @@
                     name="quantity"
                     placeholder="Quantity"
                     required
+                    min="0"
                   />
                 </div>
                 <div class="form-actions">
-                  <button type="submit" class="btn-primary">Save Book</button>
+                  <button type="submit" class="btn-primary" id="save-book-btn">
+                    Save Book
+                  </button>
                   <button
                     type="button"
                     id="cancel-add-book-btn"
@@ -153,6 +159,7 @@
                   </button>
                 </div>
               </form>
+              <!-- END OF UPDATED FORM -->
             </div>
 
             <div class="book-list-container">
