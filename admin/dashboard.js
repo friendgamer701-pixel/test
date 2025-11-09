@@ -1,58 +1,13 @@
-/* Make sure this path to your supabase.js file is correct.
-  If this 'dashboard.js' file is in a folder (e.g., 'admin'),
-  and 'supabase.js' is in the root, this path should be "../supabase.js".
-*/
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const pageContainer = document.querySelector(".page-container");
-
-  // --- 1. Authentication Check (Kept as-is) ---
-  // This part still checks for a logged-in Supabase user.
-  // If you are not using Supabase Auth at all, you might remove this.
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) {
-    // window.location.href = "/login/auth.html"; // Redirect to login
-    // return;
-    console.warn("No logged-in user found. Running in open mode."); // Allow access if no auth
-  }
-
-  // --- 2. Admin Role Check (Kept as-is) ---
-  // This checks a 'user_roles' table. If you don't have this,
-  // you should remove this check.
-  if (user) {
-    const { data: roleData, error: roleError } = await supabase
-      .from("user_roles")
-      .select("role, user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (roleError || !roleData || roleData.role !== "admin") {
-      // window.location.href = "/index.html"; // Redirect if not admin
-      // return;
-      console.warn("User is not admin. Allowing access for testing."); // Allow access
-    }
-  }
-  // --- End of Auth Checks ---
-
-  // Show the page
-  if (pageContainer) {
-    pageContainer.style.visibility = "visible";
-  }
-
-  // --- Element Selectors ---
   const menuToggle = document.querySelector(".menu-toggle");
   const logoutButton = document.getElementById("logout-btn");
-  const searchInput = document.getElementById("search-box");
-  const booksTableBody = document.getElementById("books-table-body");
-  const studentsTableBody = document.getElementById("students-table-body");
   const sidebarBtns = document.querySelectorAll(".sidebar-btn");
-  const contentSections = document.querySelectorAll(".content-section");
+  const dashboardSection = document.getElementById("dashboard-section");
+  const contentFrame = document.getElementById("content-frame");
 
-  // Modal Element Selectors
   const checkoutModal = document.getElementById("checkout-modal");
   const checkoutForm = document.getElementById("checkout-form");
   const cancelCheckoutBtn = document.getElementById("cancel-checkout-btn");
@@ -61,11 +16,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   const studentSelect = document.getElementById("student-select");
   const dueDateInput = document.getElementById("due-date-select");
 
-  // --- (NEW) This variable will hold our searchable dropdown instance ---
   let studentSelectInstance = null;
-  // --- END NEW ---
 
-  // --- Event Listeners -- -
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.warn("No logged-in user found. Running in open mode.");
+  }
+
+  if (user) {
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role, user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (roleError || !roleData || roleData.role !== "admin") {
+      console.warn("User is not admin. Allowing access for testing.");
+    }
+  }
+
+  if (pageContainer) {
+    pageContainer.style.visibility = "visible";
+  }
+
   if (menuToggle && pageContainer) {
     menuToggle.addEventListener("click", () => {
       pageContainer.classList.toggle("sidebar-hidden");
@@ -78,19 +54,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (error) {
         console.error("Error logging out:", error.message);
       } else {
-        window.location.href = "/login/auth.html"; // Redirect to login
+        window.location.href = "/login/auth.html";
       }
     });
   }
 
-  // --- Fetch Stats Function ---
   const fetchStats = async () => {
     const [
       { data: booksData, error: booksError },
       { count: checkedOutCount, error: checkedOutError },
-      /* FIX: This originally queried 'user_roles' for students.
-        Now it queries your 'student' table for a total count.
-      */
       { count: studentsCount, error: studentsError },
     ] = await Promise.all([
       supabase.from("books").select("total_copies, available_copies"),
@@ -99,8 +71,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         .select("*", { count: "exact", head: true })
         .eq("status", "checked_out"),
       supabase
-        .from("student") // <-- FIXED: Changed to 'student' table
-        .select("*", { count: "exact", head: true }), // <-- FIXED: Counts all students
+        .from("student")
+        .select("*", { count: "exact", head: true }),
     ]);
 
     if (booksError) console.error("Error fetching books:", booksError.message);
@@ -124,7 +96,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   await fetchStats();
 
-  // --- Realtime Subscriptions ---
   supabase
     .channel("dashboard-stats-updates")
     .on(
@@ -138,20 +109,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       () => fetchStats()
     )
     .on(
-      "postgres_changes", // <-- ADDED: Listen for student changes
+      "postgres_changes",
       { event: "*", schema: "public", table: "student" },
       () => fetchStats()
     )
-    .subscribe((status, err) => {
-      if (status === "SUBSCRIBED") {
-        console.log("Subscribed to Realtime changes!");
-      }
-      if (err) {
-        console.error("Realtime subscription error:", err);
-      }
-    });
+    .subscribe();
 
-  // --- Section Navigation ---
   const navigateToSection = (sectionName) => {
     sidebarBtns.forEach((b) => b.classList.remove("active"));
     const activeBtn = document.querySelector(
@@ -160,22 +123,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (activeBtn) {
       activeBtn.classList.add("active");
     }
-    contentSections.forEach((section) => {
-      section.style.display = "none";
-    });
-    const activeSection = document.getElementById(`${sectionName}-section`);
-    if (activeSection) {
-      activeSection.style.display = "block";
-    }
-    if (sectionName === "books") {
-      const searchTerm = searchInput.value.trim();
-      fetchBooks(searchTerm);
-    }
-    if (sectionName === "students") {
-      const searchTerm = searchInput.value.trim();
-      fetchStudents(searchTerm);
+
+    if (sectionName === 'dashboard') {
+        dashboardSection.style.display = 'block';
+        contentFrame.style.display = 'none';
+    } else {
+        dashboardSection.style.display = 'none';
+        contentFrame.style.display = 'block';
+        contentFrame.src = `${sectionName}.html`;
     }
   };
+
   sidebarBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const sectionName = btn.dataset.section;
@@ -183,443 +141,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // --- Add/Edit Book Form Logic ---
-  const addBookBtn = document.getElementById("add-book-btn");
-  const addBookFormContainer = document.getElementById(
-    "add-book-form-container"
-  );
-  const cancelAddBookBtn = document.getElementById("cancel-add-book-btn");
-  const addBookForm = document.getElementById("add-book-form");
-
-  if (addBookBtn) {
-    addBookBtn.addEventListener("click", () => {
-      addBookForm.reset();
-      document.getElementById("edit-book-id").value = "";
-      document.getElementById("form-title").textContent = "Add a New Book";
-      document.getElementById("save-book-btn").textContent = "Save Book";
-      addBookFormContainer.style.display = "block";
-    });
-  }
-
-  if (cancelAddBookBtn) {
-    cancelAddBookBtn.addEventListener("click", () => {
-      addBookFormContainer.style.display = "none";
-      addBookForm.reset();
-      document.getElementById("edit-book-id").value = "";
-      document.getElementById("form-title").textContent = "Add a New Book";
-      document.getElementById("save-book-btn").textContent = "Save Book";
-    });
-  }
-
-  if (addBookForm) {
-    addBookForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(addBookForm);
-      const bookId = formData.get("book_id");
-
-      const bookData = {
-        title: formData.get("title"),
-        author: formData.get("author"),
-        isbn: formData.get("isbn"),
-        genre: formData.get("genre"),
-        total_copies: parseInt(formData.get("quantity"), 10),
-      };
-
-      let error;
-      let successMessage = "";
-
-      if (bookId) {
-        // --- UPDATE (EDIT) LOGIC ---
-        const { data: oldBook, error: fetchError } = await supabase
-          .from("books")
-          .select("total_copies, available_copies")
-          .eq("id", bookId)
-          .single();
-
-        if (fetchError) {
-          console.error("Error fetching old book data:", fetchError);
-          alert("Error updating book. Could not get old data.");
-          return;
-        }
-
-        const checkedOutCount = oldBook.total_copies - oldBook.available_copies;
-        const newTotal = bookData.total_copies;
-
-        if (newTotal < checkedOutCount) {
-          alert(
-            `Cannot set total quantity to ${newTotal}. There are already ${checkedOutCount} books checked out.`
-          );
-          return;
-        }
-
-        bookData.available_copies = newTotal - checkedOutCount;
-
-        const { error: updateError } = await supabase
-          .from("books")
-          .update(bookData)
-          .eq("id", bookId);
-        error = updateError;
-        successMessage = "Book updated successfully!";
-      } else {
-        // --- ADD (INSERT) LOGIC ---
-        bookData.available_copies = bookData.total_copies; // For new books
-        const { error: insertError } = await supabase
-          .from("books")
-          .insert([bookData]);
-        error = insertError;
-        successMessage = "Book added successfully!";
-      }
-
-      // --- COMMON AFTER-SUBMIT LOGIC ---
-      if (error) {
-        console.error("Error saving book:", error);
-        alert(`Error saving book: ${error.message}`);
-      } else {
-        addBookFormContainer.style.display = "none";
-        addBookForm.reset();
-        document.getElementById("edit-book-id").value = "";
-        document.getElementById("form-title").textContent = "Add a New Book";
-        document.getElementById("save-book-btn").textContent = "Save Book";
-
-        searchInput.value = "";
-        fetchBooks();
-        alert(successMessage);
-      }
-    });
-  }
-
-  // --- Search and Book Fetching ---
-  if (searchInput) {
-    searchInput.addEventListener("focus", () => {
-      if (
-        document.getElementById("books-section").style.display !== "block" &&
-        document.getElementById("students-section").style.display !== "block"
-      ) {
-        navigateToSection("books");
-      }
-    });
-    searchInput.addEventListener("input", () => {
-      const searchTerm = searchInput.value.trim();
-      if (document.getElementById("books-section").style.display === "block") {
-        fetchBooks(searchTerm);
-      }
-      if (
-        document.getElementById("students-section").style.display === "block"
-      ) {
-        fetchStudents(searchTerm);
-      }
-    });
-  }
-
-  const fetchBooks = async (searchTerm = "") => {
-    let query = supabase.from("books").select("*").order("title");
-    if (searchTerm) {
-      const filterTerm = `%${searchTerm}%`;
-      query = query.or(
-        `title.ilike.${filterTerm},author.ilike.${filterTerm},isbn.ilike.${filterTerm},genre.ilike.${filterTerm}`
-      );
-    }
-    const { data: books, error } = await query;
-    if (error) {
-      console.error("Error fetching books:", error);
-    } else {
-      displayBooks(books);
-    }
-  };
-
-  const displayBooks = (books) => {
-    if (!booksTableBody) return;
-    booksTableBody.innerHTML = "";
-    if (books.length === 0) {
-      booksTableBody.innerHTML =
-        '<tr><td colspan="6">No books found.</td></tr>';
-      return;
-    }
-    books.forEach((book) => {
-      const row = document.createElement("tr");
-
-      const createCell = (text) => {
-        const cell = document.createElement("td");
-        cell.textContent = text;
-        cell.title = text;
-        return cell;
-      };
-
-      row.appendChild(createCell(book.title));
-      row.appendChild(createCell(book.author));
-      row.appendChild(createCell(book.isbn));
-      row.appendChild(createCell(book.genre));
-
-      const availabilityCell = document.createElement("td");
-      availabilityCell.textContent = `${book.available_copies} of ${book.total_copies}`;
-      row.appendChild(availabilityCell);
-
-      const actionsCell = document.createElement("td");
-      actionsCell.className = "actions";
-      actionsCell.innerHTML = `
-                <div class="action-menu-wrapper">
-                    <button class="action-btn-sm menu-toggle-btn" aria-label="Open actions menu">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="action-menu-dropdown">
-                        <a href="#" class="menu-item edit-btn" data-id="${book.id}">
-                            <i data-lucide="edit"></i> Edit
-                        </a>
-                        <a href="#" class="menu-item checkout-btn" data-id="${book.id}" data-title="${book.title}">
-                            <i data-lucide="arrow-left-right"></i> Check Out
-                        </a>
-                        <a href="#" class="menu-item delete-btn delete-item" data-id="${book.id}">
-                            <i data-lucide="trash"></i> Delete
-                        </a>
-                    </div>
-                </div>
-            `;
-      row.appendChild(actionsCell);
-
-      booksTableBody.appendChild(row);
-    });
-    lucide.createIcons();
-  };
-
-  const fetchStudents = async (searchTerm = "") => {
-    let query = supabase.from("student").select("*").order("student_name");
-    if (searchTerm) {
-      const filterTerm = `%${searchTerm}%`;
-      query = query.or(
-        `student_name.ilike.${filterTerm},admission_no.ilike.${filterTerm},email.ilike.${filterTerm},department.ilike.${filterTerm}`
-      );
-    }
-    const { data: students, error } = await query;
-    if (error) {
-      console.error("Error fetching students:", error);
-    } else {
-      displayStudents(students);
-    }
-  };
-
-  const displayStudents = (students) => {
-    if (!studentsTableBody) return;
-    studentsTableBody.innerHTML = "";
-    if (students.length === 0) {
-      studentsTableBody.innerHTML =
-        '<tr><td colspan="5">No students found.</td></tr>';
-      return;
-    }
-    students.forEach((student) => {
-      const row = document.createElement("tr");
-
-      const createCell = (text) => {
-        const cell = document.createElement("td");
-        cell.textContent = text;
-        cell.title = text;
-        return cell;
-      };
-
-      row.appendChild(createCell(student.student_name));
-      row.appendChild(createCell(student.admission_no));
-      row.appendChild(createCell(student.email));
-      row.appendChild(createCell(student.department));
-
-      const actionsCell = document.createElement("td");
-      actionsCell.className = "actions";
-      actionsCell.innerHTML = `
-                <div class="action-menu-wrapper">
-                    <button class="action-btn-sm menu-toggle-btn" aria-label="Open actions menu">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="action-menu-dropdown">
-                        <a href="#" class="menu-item edit-student-btn" data-id="${student.admission_no}">
-                            <i data-lucide="edit"></i> Edit
-                        </a>
-                        <a href="#" class="menu-item delete-student-btn delete-item" data-id="${student.admission_no}">
-                            <i data-lucide="trash"></i> Delete
-                        </a>
-                    </div>
-                </div>
-            `;
-      row.appendChild(actionsCell);
-
-      studentsTableBody.appendChild(row);
-    });
-    lucide.createIcons();
-  };
-
-  // --- Book Table Actions (Delete, Edit, Checkout) ---
-  if (booksTableBody) {
-    booksTableBody.addEventListener("click", async (e) => {
-      const menuItem = e.target.closest(".menu-item");
-      if (!menuItem) return;
-
-      e.preventDefault();
-      const id = menuItem.dataset.id;
-      const dropdown = menuItem.closest(".action-menu-dropdown");
-
-      if (dropdown) dropdown.style.display = "none";
-
-      // --- DELETE ACTION ---
-      if (menuItem.classList.contains("delete-btn")) {
-        const bookTitle = menuItem
-          .closest("tr")
-          .querySelector("td:first-child").textContent;
-
-        // Use a custom modal for confirmation instead of alert/confirm
-        // For simplicity, we'll keep confirm() but it's not ideal
-        if (confirm(`Are you sure you want to delete "${bookTitle}"?`)) {
-          const { error } = await supabase.from("books").delete().eq("id", id);
-
-          if (error) {
-            console.error("Error deleting book:", error);
-            alert(`Error deleting book: ${error.message}`);
-          } else {
-            alert("Book deleted successfully.");
-            fetchBooks(searchInput.value.trim());
-          }
-        }
-      }
-
-      // --- EDIT ACTION ---
-      if (menuItem.classList.contains("edit-btn")) {
-        const { data: book, error } = await supabase
-          .from("books")
-          .select("*")
-          .eq("id", id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching book for edit:", error);
-          alert("Could not load book data to edit.");
-          return;
-        }
-
-        addBookForm.querySelector('[name="title"]').value = book.title;
-        addBookForm.querySelector('[name="author"]').value = book.author;
-        addBookForm.querySelector('[name="isbn"]').value = book.isbn;
-        addBookForm.querySelector('[name="genre"]').value = book.genre;
-        addBookForm.querySelector('[name="quantity"]').value =
-          book.total_copies;
-
-        document.getElementById("edit-book-id").value = book.id;
-        document.getElementById("form-title").textContent = "Edit Book";
-        document.getElementById("save-book-btn").textContent = "Update Book";
-
-        addBookFormContainer.style.display = "block";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      // --- CHECK OUT ACTION ---
-      if (menuItem.classList.contains("checkout-btn")) {
-        const bookTitle = menuItem.dataset.title; // Get title from data attribute
-        openCheckoutModal(id, bookTitle);
-      }
-    });
-  }
-
-  // Toggles the dropdown menu on 3-dot button click
-  booksTableBody.addEventListener("click", (e) => {
-    const toggleBtn = e.target.closest(".menu-toggle-btn");
-    if (toggleBtn) {
-      e.preventDefault();
-      const dropdown = toggleBtn.nextElementSibling;
-      const currentlyOpen = document.querySelector(
-        ".action-menu-dropdown[style*='display: block']"
-      );
-      if (currentlyOpen && currentlyOpen !== dropdown) {
-        currentlyOpen.style.display = "none";
-      }
-      dropdown.style.display =
-        dropdown.style.display === "block" ? "none" : "block";
-    }
-  });
-
-  // Closes any open menu when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".action-menu-wrapper")) {
-      const openDropdown = document.querySelector(
-        ".action-menu-dropdown[style*='display: block']"
-      );
-      if (openDropdown) {
-        openDropdown.style.display = "none";
-      }
-    }
-  });
-
-  // -- -
-  // --- [START] (MODIFIED) CHECKOUT MODAL LOGIC ---
-  // -- -
-
-  /**
-   * [MODIFIED]
-   * Fetches students and populates the Tom Select dropdown.
-   */
   const fetchAndPopulateStudents = async () => {
-    // 1. Guard clause: Do nothing if Tom Select isn't ready
     if (!studentSelectInstance) return;
 
-    // 2. Clear old data and set loading state
-    studentSelectInstance.clear(); // Clear selected item
-    studentSelectInstance.clearOptions(); // Clear all old options from the list
-    studentSelectInstance.disable(); // Disable input while loading
-    studentSelectInstance.settings.placeholder = "Loading students..."; // Show loading text
-    studentSelectInstance.refreshOptions(false); // Update UI
+    studentSelectInstance.clear();
+    studentSelectInstance.clearOptions();
+    studentSelectInstance.disable();
+    studentSelectInstance.settings.placeholder = "Loading students...";
+    studentSelectInstance.refreshOptions(false);
 
-    // 3. Fetch data from Supabase (same as before)
     const { data: students, error } = await supabase
       .from("student")
       .select("admission_no, student_name, email");
 
-    // 4. Handle error state
     if (error) {
       console.error("Error fetching students:", error);
       studentSelectInstance.settings.placeholder = "Error loading students";
-      studentSelectInstance.enable(); // Re-enable on error
+      studentSelectInstance.enable();
       studentSelectInstance.refreshOptions(false);
       return;
     }
 
-    // 5. Handle no students found
     if (students.length === 0) {
       studentSelectInstance.settings.placeholder = "No students found";
-      studentSelectInstance.enable(); // Re-enable
+      studentSelectInstance.enable();
       studentSelectInstance.refreshOptions(false);
       return;
     }
 
-    // 6. Populate Tom Select with new options
     students.forEach((student) => {
       const studentName =
         student.student_name || student.email || `ID: ${student.admission_no}`;
 
       studentSelectInstance.addOption({
-        value: student.admission_no, // The actual value
-        text: `${studentName} (${student.admission_no})`, // The searchable text
+        value: student.admission_no,
+        text: `${studentName} (${student.admission_no})`,
       });
     });
 
-    // 7. Re-enable the input and set final placeholder
     studentSelectInstance.enable();
     studentSelectInstance.settings.placeholder =
       "Type to search for a student...";
     studentSelectInstance.refreshOptions(false);
   };
 
-  /**
-   * [MODIFIED]
-   * Opens the checkout modal and prepares it.
-   */
   const openCheckoutModal = (bookId, bookTitle) => {
     checkoutModal.style.display = "flex";
     checkoutBookTitle.textContent = bookTitle;
     checkoutBookIdInput.value = bookId;
 
-    // Set default due date (e.g., 2 weeks from today)
     const today = new Date();
     const twoWeeks = new Date(new Date().setDate(today.getDate() + 14));
     dueDateInput.value = twoWeeks.toISOString().split("T")[0];
 
-    // --- (NEW) Initialize Tom Select if it's the first time ---
     if (!studentSelectInstance) {
       studentSelectInstance = new TomSelect("#student-select", {
-        create: false, // Don't allow creating new students
+        create: false,
         sortField: {
           field: "text",
           direction: "asc",
@@ -627,39 +204,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         placeholder: "Type to search for a student...",
       });
     }
-    // --- END NEW ---
 
-    // Fetch students and populate the dropdown
     fetchAndPopulateStudents();
   };
+  
+  window.openCheckoutModal = openCheckoutModal;
 
-  /**
-   * [MODIFIED]
-   * Closes the checkout modal and resets the form.
-   */
   const closeCheckoutModal = () => {
     checkoutModal.style.display = "none";
     checkoutForm.reset();
 
-    // --- (NEW) Clear the Tom Select input field ---
     if (studentSelectInstance) {
       studentSelectInstance.clear();
     }
-    // --- END NEW ---
   };
 
-  /**
-   * [UNCHANGED]
-   * Handles the checkout form submission.
-   * This function works as-is because Tom Select updates the
-   * original <select> element's value.
-   */
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     const bookId = checkoutBookIdInput.value;
-
-    // This line still works!
-    const admissionNo = studentSelect.value; // This is the admission_no
+    const admissionNo = studentSelect.value;
     const dueDate = dueDateInput.value;
 
     if (!admissionNo) {
@@ -667,7 +230,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 1. Check if book is available
     const { data: book, error: fetchError } = await supabase
       .from("books")
       .select("available_copies")
@@ -683,11 +245,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (book.available_copies < 1) {
       alert("Sorry, this book is no longer available. The list will refresh.");
       closeCheckoutModal();
-      fetchBooks(searchInput.value.trim()); // Refresh list
+      if(contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
       return;
     }
 
-    // 2. Decrement available_copies
     const newAvailableCopies = book.available_copies - 1;
     const { error: updateError } = await supabase
       .from("books")
@@ -700,7 +261,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 3. Create checkout record
     const { error: insertError } = await supabase.from("checkouts").insert({
       book_id: bookId,
       admission_no: admissionNo,
@@ -710,9 +270,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     if (insertError) {
-      // This is not ideal (book count is decremented but checkout failed).
-      // A database transaction (via an Edge Function) is the robust solution.
-      // For now, we alert the user of the critical error.
       alert(
         "CRITICAL ERROR: Book count updated, but checkout record failed to create. Please manually check data."
       );
@@ -722,18 +279,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     alert("Book checked out successfully!");
     closeCheckoutModal();
-    fetchBooks(searchInput.value.trim()); // Refresh list
-    // Realtime listener will update stats
+    if(contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
   };
 
-  // --- Add Event Listeners for the Modal (UNCHANGED) ---
   if (checkoutForm) {
     checkoutForm.addEventListener("submit", handleCheckoutSubmit);
   }
   if (cancelCheckoutBtn) {
     cancelCheckoutBtn.addEventListener("click", closeCheckoutModal);
   }
-  // Also close modal by clicking overlay
   if (checkoutModal) {
     checkoutModal.addEventListener("click", (e) => {
       if (e.target === checkoutModal) {
@@ -741,9 +295,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-  // --- [END] MODIFIED CHECKOUT MODAL LOGIC ---
 
-  // --- Initial Load ---
-  // Default to dashboard section
   navigateToSection("dashboard");
 });

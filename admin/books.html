@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Books</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div id="books-section" class="content-section" style="display: block;">
+        <div class="header-with-action">
+            <h2>Manage Books</h2>
+            <button id="add-book-btn" class="add-btn">
+                <i data-lucide="plus"></i>
+                <span>Add New Book</span>
+            </button>
+        </div>
+        <div id="add-book-form-container" style="display: none;">
+            <form id="add-book-form" class="add-form">
+                <h3 id="form-title">Add a New Book</h3>
+                <input type="hidden" name="book_id" id="edit-book-id">
+                <div class="form-grid">
+                    <input type="text" name="title" placeholder="Title" required>
+                    <input type="text" name="author" placeholder="Author" required>
+                    <input type="text" name="isbn" placeholder="ISBN" required>
+                    <input type="text" name="genre" placeholder="Genre">
+                    <input type="number" name="quantity" placeholder="Quantity" required min="0">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="save-book-btn">Save Book</button>
+                    <button type="button" id="cancel-add-book-btn" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="book-list-container">
+            <h3>All Books</h3>
+            <div class="table-wrapper">
+                <table id="books-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>ISBN</th>
+                            <th>Genre</th>
+                            <th>Available</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="books-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+    <script type="module" src="books.js"></script>
+</body>
+</html>

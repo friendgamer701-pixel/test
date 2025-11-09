@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Checkouts</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div id="checkouts-section" class="content-section" style="display: block;">
+        <div class="header-with-action">
+            <h2>Manage Checkouts</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="checkouts-table">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Student Name</th>
+                        <th>Checkout Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="checkouts-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+    <script type="module" src="checkouts.js"></script>
+</body>
+</html>

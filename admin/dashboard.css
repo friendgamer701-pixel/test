@@ -104,6 +104,11 @@ body {
   overflow-x: hidden; /* Prevents horizontal scroll */
 }
 
+#content-frame {
+    flex-grow: 1;
+    border: none;
+}
+
 /* --- 4. Top Bar --- */
 .top-bar {
   display: flex;
@@ -393,14 +398,18 @@ i[data-lucide] {
   overflow-x: auto;
 }
 
-#books-table {
+#books-table, #students-table, #checkouts-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
 #books-table th,
-#books-table td {
+#books-table td, 
+#students-table th, 
+#students-table td, 
+#checkouts-table th,
+#checkouts-table td {
   /* This ensures the 'Actions' header is left-aligned */
   text-align: left;
   padding: 1rem 1.5rem;
@@ -414,7 +423,7 @@ i[data-lucide] {
   text-overflow: ellipsis;
 }
 
-#books-table th {
+#books-table th, #students-table th, #checkouts-table th {
   background-color: var(--color-background);
   font-weight: 600;
   font-size: 0.85rem;
@@ -424,21 +433,29 @@ i[data-lucide] {
 }
 
 /* Striped rows */
-#books-table tbody tr:nth-child(even) {
+#books-table tbody tr:nth-child(even), 
+#students-table tbody tr:nth-child(even),
+#checkouts-table tbody tr:nth-child(even) {
   background-color: var(--color-background);
 }
 
 /* Hover effect */
-#books-table tbody tr:hover {
+#books-table tbody tr:hover, 
+#students-table tbody tr:hover,
+#checkouts-table tbody tr:hover {
   background-color: var(--color-primary-light);
 }
 
 #books-table tbody tr:last-child th,
-#books-table tbody tr:last-child td {
+#books-table tbody tr:last-child td,
+#students-table tbody tr:last-child th,
+#students-table tbody tr:last-child td, 
+#checkouts-table tbody tr:last-child th,
+#checkouts-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-#books-table .actions {
+#books-table .actions, #students-table .actions, #checkouts-table .actions {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
@@ -534,12 +551,16 @@ i[data-lucide] {
 
 /* --- 10. Responsive Adjustments --- */
 @media (max-width: 768px) {
-  #books-table {
+  #books-table, #students-table, #checkouts-table {
     table-layout: auto; /* Let the browser decide column widths */
   }
 
   #books-table th,
-  #books-table td {
+  #books-table td,
+  #students-table th,
+  #students-table td,
+  #checkouts-table th,
+  #checkouts-table td {
     max-width: none; /* Allow cells to expand */
     white-space: normal; /* Allow text to wrap */
     text-overflow: clip; /* Don't show ellipsis */

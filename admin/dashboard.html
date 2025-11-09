@@ -8,18 +8,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Make sure this CSS file path is correct -->
     <link rel="stylesheet" href="dashboard.css" />
-
-    <!-- 
-      --- (NEW) ADDED TOM SELECT CSS ---
-      This file provides the styling for the searchable dropdown.
-    -->
     <link
       href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.default.min.css"
       rel="stylesheet"
     />
-    <!-- --- END NEW --- -->
   </head>
   <body>
     <div class="page-container">
@@ -119,152 +112,11 @@
               </div>
             </div>
           </div>
-
-          <div id="books-section" class="content-section" style="display: none">
-            <div class="header-with-action">
-              <h2>Manage Books</h2>
-              <button id="add-book-btn" class="add-btn">
-                <i data-lucide="plus"></i>
-                <span>Add New Book</span>
-              </button>
-            </div>
-            <div id="add-book-form-container" style="display: none">
-              <form id="add-book-form" class="add-form">
-                <h3 id="form-title">Add a New Book</h3>
-                <input type="hidden" name="book_id" id="edit-book-id" />
-                <div class="form-grid">
-                  <input
-                    type="text"
-                    name="title"
-                    placeholder="Title"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="author"
-                    placeholder="Author"
-                    required
-                  />
-                  <input type="text" name="isbn" placeholder="ISBN" required />
-                  <input type="text" name="genre" placeholder="Genre" />
-                  <input
-                    type="number"
-                    name="quantity"
-                    placeholder="Quantity"
-                    required
-                    min="0"
-                  />
-                </div>
-                <div class="form-actions">
-                  <button type="submit" class="btn-primary" id="save-book-btn">
-                    Save Book
-                  </button>
-                  <button
-                    type="button"
-                    id="cancel-add-book-btn"
-                    class="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div class="book-list-container">
-              <h3>All Books</h3>
-
-              <div class="table-wrapper">
-                <table id="books-table">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Author</th>
-                      <th>ISBN</th>
-                      <th>Genre</th>
-                      <th>Available</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="books-table-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div
-            id="students-section"
-            class="content-section"
-            style="display: none"
-          >
-            <div class="header-with-action">
-              <h2>Manage Students</h2>
-              <button id="add-student-btn" class="add-btn">
-                <i data-lucide="plus"></i>
-                <span>Add New Student</span>
-              </button>
-            </div>
-            <div id="add-student-form-container" style="display: none">
-              <form id="add-student-form" class="add-form">
-                <h3 id="student-form-title">Add a New Student</h3>
-                <input type="hidden" name="student_id" id="edit-student-id" />
-                <div class="form-grid">
-                  <input type="text" name="name" placeholder="Name" required />
-                  <input
-                    type="text"
-                    name="admission_no"
-                    placeholder="Admission Number"
-                    required
-                  />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="department"
-                    placeholder="Department"
-                    required
-                  />
-                </div>
-                <div class="form-actions">
-                  <button
-                    type="submit"
-                    class="btn-primary"
-                    id="save-student-btn"
-                  >
-                    Save Student
-                  </button>
-                  <button
-                    type="button"
-                    id="cancel-add-student-btn"
-                    class="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-            <div class="student-list-container">
-              <h3>All Students</h3>
-              <div class="table-wrapper">
-                <table id="students-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Admission Number</th>
-                      <th>Email</th>
-                      <th>Department</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="students-table-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Add other sections (Students, Checkouts, Settings) here as needed -->
+          <iframe
+            id="content-frame"
+            src="about:blank"
+            style="display: none; border: none; width: 100%; height: 80vh"
+          ></iframe>
         </main>
       </div>
     </div>
@@ -283,19 +135,12 @@
 
           <div class="form-group">
             <label for="student-select">Select Student</label>
-            <!-- 
-              This <select> tag is now just a placeholder.
-              Tom Select will hide this and create its own searchable input.
-              The 'name' attribute is still important.
-            -->
             <select
               id="student-select"
               name="admission_no"
               required
               placeholder="Type to search for a student..."
-            >
-              <!-- Options will be added by JavaScript -->
-            </select>
+            ></select>
           </div>
 
           <div class="form-group">
@@ -319,20 +164,11 @@
       </div>
     </div>
 
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
       lucide.createIcons();
     </script>
-
-    <!-- 
-      --- (NEW) ADDED TOM SELECT JAVASCRIPT ---
-      This must be loaded *before* your dashboard.js script.
-    -->
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-    <!-- --- END NEW --- -->
-
-    <!-- Your script must come *after* the Tom Select script -->
     <script type="module" src="dashboard.js"></script>
   </body>
 </html>
