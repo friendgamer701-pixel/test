@@ -118,10 +118,8 @@
               </button>
             </div>
             <div id="add-book-form-container" style="display: none">
-              <!-- UPDATED FORM -->
               <form id="add-book-form" class="add-form">
                 <h3 id="form-title">Add a New Book</h3>
-                <!-- This hidden input will store the ID of the book we are editing -->
                 <input type="hidden" name="book_id" id="edit-book-id" />
                 <div class="form-grid">
                   <input
@@ -159,7 +157,6 @@
                   </button>
                 </div>
               </form>
-              <!-- END OF UPDATED FORM -->
             </div>
 
             <div class="book-list-container">
@@ -186,6 +183,44 @@
       </div>
     </div>
 
+    <div id="checkout-modal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <form id="checkout-form">
+          <h3 id="checkout-modal-title">Check Out Book</h3>
+          <p>
+            You are checking out:
+            <strong id="checkout-book-title">Book Title Here</strong>
+          </p>
+
+          <input type="hidden" id="checkout-book-id" name="book_id" />
+
+          <div class="form-group">
+            <label for="student-select">Select Student</label>
+            <select id="student-select" name="user_id" required>
+              <option value="">Loading students...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="due-date-select">Select Due Date</label>
+            <input type="date" id="due-date-select" name="due_date" required />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="confirm-checkout-btn">
+              Confirm Checkout
+            </button>
+            <button
+              type="button"
+              id="cancel-checkout-btn"
+              class="btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
       lucide.createIcons();
