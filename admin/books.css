@@ -1,18 +1,206 @@
-/* --- Books Page Specific Styles --- */
-
-#books-section .book-list-container {
-    /* Inherits generic container styles from dashboard.css */
-    margin-top: 1rem;
+/* --- CRITICAL FIX: Override dashboard.css to allow scrolling --- */
+body {
+    overflow-y: auto !important; /* Enables vertical scrolling */
+    height: auto !important; /* Allows body to grow with content */
+    padding-bottom: 40px; /* Space at bottom for last dropdowns */
 }
 
-/* Specific tweaks for the Add Book Form if needed */
-#add-book-form .form-grid {
-    /* Ensure quantity field doesn't get too small */
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+/* --- Page Layout --- */
+.page-wrapper {
+    padding: 0;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-/* Ensure the ISBN column doesn't wrap weirdly */
-#books-table td:nth-child(3) {
-    font-family: monospace;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-bg-body, #f8fafc); /* Match background */
+    z-index: 10;
+    padding: 10px 0;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+/* --- ALIGNMENT FIX FOR ADD BUTTON --- */
+#add-book-btn {
+    display: inline-flex;       /* Enables flexbox alignment */
+    align-items: center;        /* Vertically centers icon and text */
+    justify-content: center;    /* Horizontally centers content */
+    gap: 8px;                   /* Uniform space between icon and text */
+    line-height: 1;             /* Removes text line-height offsets */
+    padding-top: 10px;          /* Ensure even padding */
+    padding-bottom: 10px;
+}
+
+/* --- Table Card Styling --- */
+.table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* --- Table Styling --- */
+.table-responsive {
+    overflow-x: auto;
+    min-height: 300px; 
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+/* --- STICKY TABLE HEADER --- */
+.custom-table th {
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
+    padding: 12px 24px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.custom-table td {
+    padding: 16px 24px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.loading-cell {
+    text-align: center;
+    padding: 40px !important;
+    color: #9ca3af;
+}
+
+/* --- Action Menu (The 3 dots) --- */
+.action-cell {
+    position: relative;
+    text-align: center !important;
+}
+
+.action-btn-dots {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn-dots:hover {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #374151;
+}
+
+/* --- Dropdown Menu --- */
+.dropdown-menu {
+    position: absolute;
+    right: 35px;
+    top: 10px;
+    width: 160px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    display: none;
+    text-align: left;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.1s;
+    width: 100%;
+    border: none;
+    background: none;
+    text-decoration: none;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f4f6;
+}
+
+.dropdown-item i {
+    width: 14px;
+    height: 14px;
+    color: #6b7280;
+}
+
+.dropdown-item.delete-item {
+    color: #ef4444;
+}
+.dropdown-item.delete-item:hover {
+    background-color: #fef2f2;
+}
+.dropdown-item.delete-item i {
+    color: #ef4444;
+}
+
+/* --- Form Styles for Modal --- */
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+.form-row .form-group {
+    flex: 1;
+}
+
+.modal-content {
+    max-width: 500px;
 }

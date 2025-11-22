@@ -1,276 +1,216 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const booksTableBody = document.getElementById("books-table-body");
-    const searchInput = parent.document.getElementById("search-box");
-
+    const tableBody = document.getElementById("books-table-body");
     const addBookBtn = document.getElementById("add-book-btn");
-    const addBookFormContainer = document.getElementById("add-book-form-container");
-    const cancelAddBookBtn = document.getElementById("cancel-add-book-btn");
-    const addBookForm = document.getElementById("add-book-form");
+    
+    // Modal Elements
+    const bookModal = document.getElementById("book-modal");
+    const bookForm = document.getElementById("book-form");
+    const cancelBtn = document.getElementById("cancel-btn");
+    const modalTitle = document.getElementById("modal-title");
+    const saveBtn = document.getElementById("save-btn");
 
-    const openCheckoutModal = parent.openCheckoutModal;
+    let activeDropdown = null;
 
-    if (addBookBtn) {
-        addBookBtn.addEventListener("click", () => {
-            addBookForm.reset();
-            document.getElementById("edit-book-id").value = "";
-            document.getElementById("form-title").textContent = "Add a New Book";
-            document.getElementById("save-book-btn").textContent = "Save Book";
-            addBookFormContainer.style.display = "block";
-        });
-    }
-
-    if (cancelAddBookBtn) {
-        cancelAddBookBtn.addEventListener("click", () => {
-            addBookFormContainer.style.display = "none";
-            addBookForm.reset();
-            document.getElementById("edit-book-id").value = "";
-            document.getElementById("form-title").textContent = "Add a New Book";
-            document.getElementById("save-book-btn").textContent = "Save Book";
-        });
-    }
-
-    if (addBookForm) {
-        addBookForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(addBookForm);
-            const bookId = formData.get("book_id");
-
-            const bookData = {
-                title: formData.get("title"),
-                author: formData.get("author"),
-                isbn: formData.get("isbn"),
-                genre: formData.get("genre"),
-                total_copies: parseInt(formData.get("quantity"), 10),
-            };
-
-            let error;
-            let successMessage = "";
-
-            if (bookId) {
-                const { data: oldBook, error: fetchError } = await supabase
-                    .from("books")
-                    .select("total_copies, available_copies")
-                    .eq("id", bookId)
-                    .single();
-
-                if (fetchError) {
-                    console.error("Error fetching old book data:", fetchError);
-                    alert("Error updating book. Could not get old data.");
-                    return;
-                }
-
-                const checkedOutCount = oldBook.total_copies - oldBook.available_copies;
-                const newTotal = bookData.total_copies;
-
-                if (newTotal < checkedOutCount) {
-                    alert(
-                        `Cannot set total quantity to ${newTotal}. There are already ${checkedOutCount} books checked out.`
-                    );
-                    return;
-                }
-
-                bookData.available_copies = newTotal - checkedOutCount;
-
-                const { error: updateError } = await supabase
-                    .from("books")
-                    .update(bookData)
-                    .eq("id", bookId);
-                error = updateError;
-                successMessage = "Book updated successfully!";
-            } else {
-                bookData.available_copies = bookData.total_copies;
-                const { error: insertError } = await supabase
-                    .from("books")
-                    .insert([bookData]);
-                error = insertError;
-                successMessage = "Book added successfully!";
-            }
-
-            if (error) {
-                console.error("Error saving book:", error);
-                alert(`Error saving book: ${error.message}`);
-            } else {
-                addBookFormContainer.style.display = "none";
-                addBookForm.reset();
-                document.getElementById("edit-book-id").value = "";
-                document.getElementById("form-title").textContent = "Add a New Book";
-                document.getElementById("save-book-btn").textContent = "Save Book";
-
-                if (searchInput) searchInput.value = "";
-                fetchBooks();
-                alert(successMessage);
-            }
-        });
-    }
-
+    // --- 1. Fetch & Render Books ---
     const fetchBooks = async (searchTerm = "") => {
-        let query = supabase.from("books").select("*").order("title");
-        if (searchTerm) {
-            const filterTerm = `%${searchTerm}%`;
-            query = query.or(
-                `title.ilike.${filterTerm},author.ilike.${filterTerm},isbn.ilike.${filterTerm},genre.ilike.${filterTerm}`
-            );
-        }
-        const { data: books, error } = await query;
-        if (error) {
-            console.error("Error fetching books:", error);
-        } else {
-            displayBooks(books);
-        }
-    };
-    window.fetchBooks = fetchBooks;
+        let query = supabase
+            .from("books")
+            .select("*")
+            .order("title");
 
-    const displayBooks = (books) => {
-        if (!booksTableBody) return;
-        booksTableBody.innerHTML = "";
-        if (books.length === 0) {
-            booksTableBody.innerHTML =
-                '<tr><td colspan="6">No books found.</td></tr>';
+        if (searchTerm) {
+            // UPDATED: Now searches Title OR ISBN OR Author
+            query = query.or(`title.ilike.%${searchTerm}%,isbn.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%`);
+        }
+
+        const { data: books, error } = await query;
+
+        if (error) {
+            console.error("Error loading books:", error);
+            tableBody.innerHTML = `<tr><td colspan="6" class="loading-cell" style="color:red">Error loading data.</td></tr>`;
             return;
         }
-        books.forEach((book) => {
-            const row = document.createElement("tr");
 
-            const createCell = (text) => {
-                const cell = document.createElement("td");
-                cell.textContent = text;
-                cell.title = text;
-                return cell;
-            };
-
-            row.appendChild(createCell(book.title));
-            row.appendChild(createCell(book.author));
-            row.appendChild(createCell(book.isbn));
-            row.appendChild(createCell(book.genre));
-
-            const availabilityCell = document.createElement("td");
-            availabilityCell.textContent = `${book.available_copies} of ${book.total_copies}`;
-            row.appendChild(availabilityCell);
-
-            const actionsCell = document.createElement("td");
-            actionsCell.className = "actions";
-            const checkoutDisabled = book.available_copies === 0 ? 'style="pointer-events: none; opacity: 0.5;"' : '';
-            actionsCell.innerHTML = `
-                <div class="action-menu-wrapper">
-                    <button class="action-btn-sm menu-toggle-btn" aria-label="Open actions menu">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="action-menu-dropdown">
-                        <a href="#" class="menu-item edit-btn" data-id="${book.id}">
-                            <i data-lucide="edit"></i> Edit
-                        </a>
-                        <a href="#" class="menu-item checkout-btn" data-id="${book.id}" data-title="${book.title}" ${checkoutDisabled}>
-                            <i data-lucide="arrow-left-right"></i> Check Out
-                        </a>
-                        <a href="#" class="menu-item delete-btn delete-item" data-id="${book.id}">
-                            <i data-lucide="trash"></i> Delete
-                        </a>
-                    </div>
-                </div>
-            `;
-            row.appendChild(actionsCell);
-
-            booksTableBody.appendChild(row);
-        });
-        lucide.createIcons();
+        renderTable(books);
     };
 
-    if (booksTableBody) {
-        booksTableBody.addEventListener("click", async (e) => {
-            const menuItem = e.target.closest(".menu-item");
-            if (!menuItem) return;
+    const renderTable = (books) => {
+        tableBody.innerHTML = "";
 
-            e.preventDefault();
-            const id = menuItem.dataset.id;
-            const dropdown = menuItem.closest(".action-menu-dropdown");
+        if (books.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="loading-cell">No books found.</td></tr>`;
+            return;
+        }
 
-            if (dropdown) dropdown.style.display = "none";
+        books.forEach(book => {
+            const tr = document.createElement("tr");
 
-            if (menuItem.classList.contains("delete-btn")) {
-                const bookTitle = menuItem
-                    .closest("tr")
-                    .querySelector("td:first-child").textContent;
+            tr.innerHTML = `
+                <td>
+                    <div style="font-weight: 500; color:#111827;">${book.title}</div>
+                </td>
+                <td>${book.author || '-'}</td>
+                <td>${book.isbn || '-'}</td>
+                <td>${book.genre || '-'}</td>
+                <td>
+                    ${book.available_copies} of ${book.total_copies}
+                </td>
+                <td class="action-cell">
+                    <button class="action-btn-dots" data-id="${book.id}">
+                        <i data-lucide="more-vertical" width="16" height="16"></i>
+                    </button>
+                    <div class="dropdown-menu" id="menu-${book.id}">
+                        <button class="dropdown-item edit-btn" data-id="${book.id}">
+                            <i data-lucide="edit-2"></i> Edit
+                        </button>
+                        <button class="dropdown-item checkout-btn" data-id="${book.id}" data-title="${book.title}">
+                            <i data-lucide="arrow-left-right"></i> Check Out
+                        </button>
+                        <button class="dropdown-item delete-item delete-btn" data-id="${book.id}">
+                            <i data-lucide="trash-2"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
 
-                if (confirm(`Are you sure you want to delete "${bookTitle}"?`)) {
-                    const { error } = await supabase.from("books").delete().eq("id", id);
+        if (window.lucide) lucide.createIcons();
+    };
 
-                    if (error) {
-                        console.error("Error deleting book:", error);
-                        alert(`Error deleting book: ${error.message}`);
-                    } else {
-                        alert("Book deleted successfully.");
-                        fetchBooks(searchInput.value.trim());
-                    }
-                }
+    // --- 2. Menu Logic (Dropdowns) ---
+    tableBody.addEventListener("click", (e) => {
+        // Toggle Dropdown
+        const dotsBtn = e.target.closest(".action-btn-dots");
+        if (dotsBtn) {
+            e.stopPropagation();
+            const id = dotsBtn.dataset.id;
+            const menu = document.getElementById(`menu-${id}`);
+            
+            // Close others
+            if (activeDropdown && activeDropdown !== menu) {
+                activeDropdown.style.display = "none";
             }
 
-            if (menuItem.classList.contains("edit-btn")) {
-                const { data: book, error } = await supabase
-                    .from("books")
-                    .select("*")
-                    .eq("id", id)
-                    .single();
-
-                if (error) {
-                    console.error("Error fetching book for edit:", error);
-                    alert("Could not load book data to edit.");
-                    return;
-                }
-
-                addBookForm.querySelector('[name="title"]').value = book.title;
-                addBookForm.querySelector('[name="author"]').value = book.author;
-                addBookForm.querySelector('[name="isbn"]').value = book.isbn;
-                addBookForm.querySelector('[name="genre"]').value = book.genre;
-                addBookForm.querySelector('[name="quantity"]').value =
-                    book.total_copies;
-
-                document.getElementById("edit-book-id").value = book.id;
-                document.getElementById("form-title").textContent = "Edit Book";
-                document.getElementById("save-book-btn").textContent = "Update Book";
-
-                addBookFormContainer.style.display = "block";
-                window.scrollTo({ top: 0, behavior: "smooth" });
+            // Toggle current
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+                activeDropdown = null;
+            } else {
+                menu.style.display = "block";
+                activeDropdown = menu;
             }
+            return;
+        }
 
-            if (menuItem.classList.contains("checkout-btn")) {
-                const bookTitle = menuItem.dataset.title;
-                if (openCheckoutModal) {
-                    openCheckoutModal(id, bookTitle);
+        // Handle Actions inside dropdown
+        const actionBtn = e.target.closest(".dropdown-item");
+        if (actionBtn) {
+            const id = actionBtn.dataset.id;
+            const menu = actionBtn.closest(".dropdown-menu");
+            menu.style.display = "none"; // Close menu immediately
+            activeDropdown = null;
+
+            if (actionBtn.classList.contains("delete-btn")) {
+                handleDelete(id);
+            } else if (actionBtn.classList.contains("edit-btn")) {
+                handleEdit(id);
+            } else if (actionBtn.classList.contains("checkout-btn")) {
+                const title = actionBtn.dataset.title;
+                // Calls the function in the PARENT window (dashboard.js)
+                if (window.parent && window.parent.openCheckoutModal) {
+                    window.parent.openCheckoutModal(id, title);
                 } else {
-                    alert("Error: Checkout function not found.");
+                    alert("Checkout modal not found in parent.");
                 }
             }
-        });
+        }
+    });
 
-        booksTableBody.addEventListener("click", (e) => {
-            const toggleBtn = e.target.closest(".menu-toggle-btn");
-            if (toggleBtn) {
-                e.preventDefault();
-                const dropdown = toggleBtn.nextElementSibling;
-                const currentlyOpen = document.querySelector(
-                    ".action-menu-dropdown[style*='display: block']"
-                );
-                if (currentlyOpen && currentlyOpen !== dropdown) {
-                    currentlyOpen.style.display = "none";
-                }
-                dropdown.style.display =
-                    dropdown.style.display === "block" ? "none" : "block";
-            }
-        });
+    // Close menu when clicking outside
+    document.addEventListener("click", () => {
+        if (activeDropdown) {
+            activeDropdown.style.display = "none";
+            activeDropdown = null;
+        }
+    });
 
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".action-menu-wrapper")) {
-                const openDropdown = document.querySelector(
-                    ".action-menu-dropdown[style*='display: block']"
-                );
-                if (openDropdown) {
-                    openDropdown.style.display = "none";
-                }
-            }
-        });
-    }
+    // --- 3. Add/Edit Logic ---
+    const openModal = (isEdit = false, data = null) => {
+        bookModal.style.display = "flex";
+        if (isEdit && data) {
+            modalTitle.textContent = "Edit Book";
+            saveBtn.textContent = "Update Book";
+            document.getElementById("book-id").value = data.id;
+            bookForm.title.value = data.title;
+            bookForm.author.value = data.author;
+            bookForm.isbn.value = data.isbn;
+            bookForm.genre.value = data.genre;
+            bookForm.total_copies.value = data.total_copies;
+            bookForm.available_copies.value = data.available_copies;
+        } else {
+            modalTitle.textContent = "Add New Book";
+            saveBtn.textContent = "Save Book";
+            bookForm.reset();
+            document.getElementById("book-id").value = "";
+        }
+    };
 
-    fetchBooks(searchInput ? searchInput.value.trim() : "");
+    addBookBtn.addEventListener("click", () => openModal(false));
+    cancelBtn.addEventListener("click", () => {
+        bookModal.style.display = "none";
+        bookForm.reset();
+    });
+
+    bookForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(bookForm);
+        const id = formData.get("id");
+        
+        const bookData = {
+            title: formData.get("title"),
+            author: formData.get("author"),
+            isbn: formData.get("isbn"),
+            genre: formData.get("genre"),
+            total_copies: parseInt(formData.get("total_copies")),
+            available_copies: parseInt(formData.get("available_copies"))
+        };
+
+        let error;
+        if (id) {
+            const { error: updateError } = await supabase.from("books").update(bookData).eq("id", id);
+            error = updateError;
+        } else {
+            const { error: insertError } = await supabase.from("books").insert([bookData]);
+            error = insertError;
+        }
+
+        if (error) {
+            alert("Error saving book: " + error.message);
+        } else {
+            bookModal.style.display = "none";
+            fetchBooks();
+        }
+    });
+
+    const handleEdit = async (id) => {
+        const { data, error } = await supabase.from("books").select("*").eq("id", id).single();
+        if (data) openModal(true, data);
+        else alert("Error fetching book details");
+    };
+
+    const handleDelete = async (id) => {
+        if (confirm("Are you sure you want to delete this book?")) {
+            const { error } = await supabase.from("books").delete().eq("id", id);
+            if (!error) fetchBooks();
+            else alert("Error deleting book.");
+        }
+    };
+
+    // Expose fetchBooks for parent search bar
+    window.fetchBooks = fetchBooks;
+
+    fetchBooks();
 });

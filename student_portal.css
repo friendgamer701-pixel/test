@@ -1,0 +1,227 @@
+/* --- Global Setup --- */
+:root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --bg-color: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Layout --- */
+.portal-container {
+    max-width: 900px;
+    width: 95%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.portal-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-top: 20px;
+}
+
+.logo-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+/* --- Cards --- */
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    padding: 30px;
+}
+
+/* --- Login Form --- */
+.login-card {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-header h2 { margin: 0 0 8px 0; font-size: 1.5rem; }
+.login-header p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-primary {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 1rem;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.error-msg {
+    color: #ef4444;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 15px;
+    min-height: 20px;
+}
+
+/* --- Student Profile Bar --- */
+.student-profile-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    background: #eef2ff;
+    color: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+#profile-name { margin: 0; font-size: 1.1rem; color: var(--text-main); }
+#profile-dept { color: var(--text-muted); font-size: 0.9rem; }
+
+.btn-secondary {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-secondary:hover { background: #f8fafc; }
+
+/* --- History Table --- */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+}
+
+.history-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active { background: #dbeafe; color: #1e40af; } /* Blue */
+.status-overdue { background: #fee2e2; color: #991b1b; } /* Red */
+.status-returned { background: #d1fae5; color: #065f46; } /* Green */
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+.empty-state i {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    color: #cbd5e1;
+}
+
+/* Mobile Fix */
+@media (max-width: 600px) {
+    .student-profile-bar {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    .profile-info { flex-direction: column; gap: 8px; }
+    
+    /* Make table scrollable */
+    .history-table th, .history-table td {
+        white-space: nowrap;
+    }
+}

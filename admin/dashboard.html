@@ -16,28 +16,63 @@
   </head>
   <body>
     <div class="page-container">
-      <div class="sidebar">
-        <div class="logo-container">
-          <i data-lucide="book-heart"></i>
-          <span class="logo-text">LibraryHub</span>
+      
+      <!-- PREMIUM SIDEBAR START -->
+      <aside class="sidebar">
+        <!-- Logo Section -->
+        <div class="sidebar-header">
+          <div class="logo-icon">
+            <i data-lucide="book-open-check"></i>
+          </div>
+          <div class="logo-text">
+            <span>Library</span><span class="highlight">Hub</span>
+          </div>
         </div>
-        <button class="sidebar-btn active" data-section="dashboard">
-          <i data-lucide="layout-dashboard"></i>
-          <span>Dashboard</span>
-        </button>
-        <button class="sidebar-btn" data-section="books">
-          <i data-lucide="book"></i>
-          <span>Books</span>
-        </button>
-        <button class="sidebar-btn" data-section="students">
-          <i data-lucide="users"></i>
-          <span>Students</span>
-        </button>
-        <button class="sidebar-btn" data-section="checkouts">
-          <i data-lucide="arrow-left-right"></i>
-          <span>Checkouts</span>
-        </button>
-      </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+          <div class="nav-label">Main Menu</div>
+          
+          <button class="sidebar-btn active" data-section="dashboard">
+            <i data-lucide="layout-grid"></i>
+            <span>Dashboard</span>
+            <div class="glow-effect"></div>
+          </button>
+          
+          <button class="sidebar-btn" data-section="books">
+            <i data-lucide="library"></i>
+            <span>Books Inventory</span>
+          </button>
+          
+          <button class="sidebar-btn" data-section="students">
+            <i data-lucide="graduation-cap"></i>
+            <span>Students</span>
+          </button>
+          
+          <button class="sidebar-btn" data-section="checkouts">
+            <i data-lucide="arrow-left-right"></i>
+            <span>Checkouts</span>
+          </button>
+        </nav>
+
+        <!-- Sidebar Footer / Profile -->
+        <div class="sidebar-footer">
+          <div class="user-profile">
+            <div class="avatar">
+              <img src="https://ui-avatars.com/api/?name=Admin+User&background=3b82f6&color=fff" alt="Admin" />
+            </div>
+            <div class="user-info">
+              <span class="name">Admin User</span>
+              <span class="role">Library Manager</span>
+            </div>
+            <button class="logout-mini-btn" id="logout-btn-sidebar">
+              <i data-lucide="log-out" width="16"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+      <!-- PREMIUM SIDEBAR END -->
+
       <div class="main-content">
         <header class="top-bar">
           <button class="menu-toggle">
@@ -48,10 +83,11 @@
             <input
               type="text"
               id="search-box"
-              placeholder="Title, Author, Series, Genre, or ISBN..."
+              placeholder="Search books, students, or ISBN..."
             />
           </div>
           <div class="top-bar-actions">
+            <!-- Mobile Logout (Hidden on Desktop usually, but kept for logic) -->
             <button class="action-btn" id="logout-btn">
               <i data-lucide="log-out"></i>
             </button>
@@ -61,8 +97,8 @@
         <main class="content-area">
           <div id="dashboard-section" class="content-section">
             <div class="dashboard-header">
-              <h1>Admin Dashboard</h1>
-              <p>Manage your library system</p>
+              <h1>Overview</h1>
+              <p>Welcome back, here is what's happening today.</p>
             </div>
 
             <div class="stats-grid">
@@ -70,27 +106,27 @@
                 <div class="card-content">
                   <p class="card-title">Total Books</p>
                   <p id="stats-total-books" class="card-value">0</p>
-                  <p class="card-description">Books in library</p>
+                  <p class="card-description">Total Collection</p>
                 </div>
                 <div class="card-icon-wrapper icon-total">
-                  <i data-lucide="book-open"></i>
+                  <i data-lucide="book"></i>
                 </div>
               </div>
               <div class="stat-card">
                 <div class="card-content">
                   <p class="card-title">Available</p>
                   <p id="stats-available-books" class="card-value">0</p>
-                  <p class="card-description">Ready to checkout</p>
+                  <p class="card-description">On Shelves</p>
                 </div>
                 <div class="card-icon-wrapper icon-available">
-                  <i data-lucide="book-marked"></i>
+                  <i data-lucide="check-circle"></i>
                 </div>
               </div>
               <div class="stat-card">
                 <div class="card-content">
-                  <p class="card-title">Checked Out</p>
+                  <p class="card-title">Borrowed</p>
                   <p id="stats-checked-out" class="card-value">0</p>
-                  <p class="card-description">Currently borrowed</p>
+                  <p class="card-description">With Students</p>
                 </div>
                 <div class="card-icon-wrapper icon-checked-out">
                   <i data-lucide="clock"></i>
@@ -99,8 +135,8 @@
               <div class="stat-card">
                 <div class="card-content">
                   <p class="card-title">Students</p>
-                  <p id="stats-total-students" class="card-value">1</p>
-                  <p class="card-description">Registered users</p>
+                  <p id="stats-total-students" class="card-value">0</p>
+                  <p class="card-description">Active Members</p>
                 </div>
                 <div class="card-icon-wrapper icon-students">
                   <i data-lucide="users"></i>
@@ -117,6 +153,7 @@
       </div>
     </div>
 
+    <!-- Modal (Kept exactly same for logic to work) -->
     <div id="checkout-modal" class="modal-overlay" style="display: none">
       <div class="modal-content">
         <form id="checkout-form">

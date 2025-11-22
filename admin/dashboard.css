@@ -1,734 +1,523 @@
-/* --- 0. CSS Variables --- */
+/* --- 0. CSS Variables & Theme Setup --- */
 :root {
-  --color-background: #f4f7fa; /* Lighter, cooler gray */
+  --color-bg-body: #f8fafc;      /* Very light slate background for main area */
+  --color-bg-sidebar: #ffffff;   /* Pure White for Sidebar */
+  --color-bg-sidebar-hover: #f1f5f9; /* Light Gray for hover */
+  
+  --color-sidebar-text: #64748b; /* Slate 500 - Soft dark gray */
+  --color-sidebar-text-active: #ffffff; /* White text for active state */
+  
+  --color-primary: #3b82f6;      /* Vibrant Blue */
+  --color-primary-glow: rgba(59, 130, 246, 0.3);
+  
   --color-card: #ffffff;
-  --color-border: #e5e7eb; /* Light gray border */
-  --color-text: #1f2937; /* Darker, softer black */
-  --color-text-muted: #6b7280; /* Muted gray text */
+  --color-border: #e2e8f0;       /* Lighter border for light mode */
+  --color-text-main: #0f172a;    /* Deep dark blue/black for main text */
+  --color-text-muted: #64748b;
 
-  /* New Blue Theme */
-  --color-primary: #3b82f6; /* A modern blue */
-  --color-primary-hover: #2563eb; /* A darker blue for hover */
-  --color-primary-light: #eff6ff; /* A very light blue for backgrounds */
-  --color-primary-text: #ffffff;
-
-  /* Icon Colors */
-  --color-icon-total: #3b82f6; /* Blue */
-  --color-icon-available: #f59e0b; /* Amber */
-  --color-icon-checked-out: #ef4444; /* Red */
-  --color-icon-students: #10b981; /* Green */
-
-  --sidebar-width: 250px;
-  --shadow-soft: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sidebar-width: 280px;
+  --header-height: 70px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* --- 1. General Setup --- */
 body {
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   margin: 0;
-  background-color: var(--color-background);
-  color: var(--color-text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-body);
+  color: var(--color-text-main);
+  overflow: hidden;
 }
 
 .page-container {
   display: flex;
-  min-height: 100vh;
-  /* This hides the page until the JS auth check passes */
+  height: 100vh;
+  width: 100vw;
   visibility: hidden;
 }
 
-/* --- 2. Sidebar --- */
+/* =========================================
+   --- 1. LIGHT MODE SIDEBAR STYLES --- 
+   ========================================= */
 .sidebar {
   width: var(--sidebar-width);
-  background-color: var(--color-card);
-  border-right: 1px solid var(--color-border);
+  background-color: var(--color-bg-sidebar);
+  color: var(--color-sidebar-text);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  transition: width 0.3s ease, padding 0.3s ease;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth animation */
+  z-index: 50;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.04);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden; /* Ensures content hides when width is 0 */
+  white-space: nowrap; /* Prevents text wrapping during close */
+}
+
+/* --- FIX: Global Sidebar Hidden State (Desktop & Mobile) --- */
+.page-container.sidebar-hidden .sidebar {
+  width: 0;
+  opacity: 0;
+  border-right: none;
+}
+
+/* Header / Logo */
+.sidebar-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+  flex-shrink: 0; /* Prevents shrinking */
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
   flex-shrink: 0;
 }
 
-.sidebar .logo-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  font-weight: 600;
-  font-size: 1.2rem;
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: -0.5px;
+}
+.logo-text .highlight {
   color: var(--color-primary);
-  white-space: nowrap;
 }
 
-.sidebar .logo-container i {
-  color: var(--color-primary);
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  font-weight: 700;
 }
 
 .sidebar-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: none;
-  border: none;
-  text-align: left;
-  font-size: 0.95rem; /* Slightly smaller */
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-sidebar-text);
+  font-size: 0.95rem;
   font-weight: 500;
-  padding: 0.8rem;
-  border-radius: 0.5rem;
   cursor: pointer;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  text-align: left;
 }
 
-.sidebar-btn.active,
+/* Hover Effect */
 .sidebar-btn:hover {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-bg-sidebar-hover);
   color: var(--color-primary);
+  transform: translateX(2px);
 }
 
-.sidebar-btn.active i,
 .sidebar-btn:hover i {
   color: var(--color-primary);
 }
 
-/* --- 3. Main Content --- */
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden; /* Prevents horizontal scroll */
+/* Active State */
+.sidebar-btn.active {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px var(--color-primary-glow);
+  border-color: transparent;
 }
 
-#content-frame {
-    flex-grow: 1;
-    border: none;
+.sidebar-btn.active i {
+  color: white;
+  filter: none;
 }
 
-/* --- 4. Top Bar --- */
-.top-bar {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-card);
-  border-bottom: 1px solid var(--color-border);
-  gap: 1rem;
+/* Footer / User Profile */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid var(--color-border);
+  background: #f8fafc;
   flex-shrink: 0;
 }
 
-.menu-toggle {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  color: var(--color-text-muted);
+.user-profile {
   display: flex;
-  padding: 0.5rem;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  transition: background 0.2s;
+  background: white;
+  border: 1px solid var(--color-border);
+}
+
+.user-profile:hover {
+  background: white;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Truncate text if needed */
+}
+
+.user-info .name {
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.user-info .role {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.logout-mini-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
   cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.logout-mini-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* =========================================
+   --- 2. MAIN CONTENT AREA --- 
+   ========================================= */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-body);
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+
+/* Top Bar */
+.top-bar {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menu-toggle {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--color-text-muted);
 }
 .menu-toggle:hover {
-  background-color: var(--color-background);
+  background-color: var(--color-bg-body);
 }
 
 .search-container {
+  flex: 0 1 400px;
   display: flex;
   align-items: center;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  flex-grow: 1;
-  max-width: 500px;
+  background: var(--color-bg-body);
+  border-radius: 8px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
 }
+
 .search-container:focus-within {
+  background: white;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.search-container i {
-  color: var(--color-text-muted);
-  margin-right: 0.75rem;
-}
-
-#search-box {
-  background: none;
+.search-container input {
   border: none;
-  color: var(--color-text);
-  font-size: 1rem;
-  width: 100%;
+  background: transparent;
   outline: none;
-}
-
-#search-box::placeholder {
-  color: var(--color-text-muted);
+  width: 100%;
+  margin-left: 10px;
+  font-size: 0.95rem;
+  color: var(--color-text-main);
 }
 
 .top-bar-actions {
   display: flex;
-  align-items: center;
-  margin-left: auto;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .action-btn {
   background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  border: none;
   color: var(--color-text-muted);
-  padding: 0.6rem;
-  display: flex;
-  align-items: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
 }
-
 .action-btn:hover {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-text);
+  background: var(--color-bg-body);
+  color: var(--color-text-main);
 }
 
-/* --- 5. Content Area --- */
+/* Content Area */
 .content-area {
-  padding: 2rem;
-  overflow-y: auto; /* Allows content to scroll */
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+#content-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm); 
+    background: white;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  margin-bottom: 32px;
 }
 
 .dashboard-header h1 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin: 0;
-  color: var(--color-text);
+  margin: 0 0 8px 0;
+  color: var(--color-text-main);
 }
 
 .dashboard-header p {
   color: var(--color-text-muted);
-  font-size: 1rem;
-  margin: 0.25rem 0 0;
+  margin: 0;
 }
 
-/* --- 6. Stats Grid --- */
+/* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
 }
 
 .stat-card {
-  background-color: var(--color-card);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  box-shadow: var(--shadow-soft);
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
-  transition: all 0.3s ease;
-}
-.stat-card:hover {
-  box-shadow: var(--shadow-medium);
-  transform: translateY(-2px);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card-title,
-.card-description {
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: #cbd5e1;
+}
+
+.card-title {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
 }
 
 .card-value {
-  font-size: 2.25rem; /* Slightly smaller */
+  font-size: 2rem;
   font-weight: 700;
-  margin: 0.5rem 0;
-  color: var(--color-text);
+  margin: 8px 0;
+  color: var(--color-text-main);
+}
+
+.card-description {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
 }
 
 .card-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary-text);
-  flex-shrink: 0;
+  font-size: 1.25rem;
 }
 
-/* New Icon Colors */
-.icon-total {
-  background-color: var(--color-icon-total);
-}
-.icon-available {
-  background-color: var(--color-icon-available);
-}
-.icon-checked-out {
-  background-color: var(--color-icon-checked-out);
-}
-.icon-students {
-  background-color: var(--color-icon-students);
-}
+.icon-total { background: #eff6ff; color: #3b82f6; }
+.icon-available { background: #ecfdf5; color: #10b981; }
+.icon-checked-out { background: #fff7ed; color: #f97316; }
+.icon-students { background: #f5f3ff; color: #8b5cf6; }
 
-/* --- 7. Sidebar Toggling --- */
-.page-container.sidebar-hidden .sidebar {
-  width: 0;
-  padding-left: 0;
-  padding-right: 0;
-  overflow: hidden;
-}
 
-i[data-lucide] {
-  width: 20px;
-  height: 20px;
-}
-
-/* --- 8. Books Section --- */
-.header-with-action {
-  display: flex;
-  flex-wrap: wrap; /* Allows wrapping on small screens */
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.add-btn {
-  background-color: var(--color-primary);
-  color: var(--color-primary-text);
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.add-btn:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.add-form {
-  background-color: var(--color-card);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--color-border);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.add-form input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  box-sizing: border-box; /* Ensures padding doesn't break layout */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.add-form input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-.form-actions {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 0.7rem 1.2rem;
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-text);
-}
-.btn-primary:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.btn-secondary {
-  background-color: var(--color-card);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
-.btn-secondary:hover {
-  background-color: var(--color-background);
-}
-
-/* --- 9. Improved Book Table --- */
-.book-list-container {
-  background-color: var(--color-card);
-  border-radius: 8px;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--color-border);
-  overflow: hidden; /* Important for rounded corners */
-}
-
-.book-list-container h3 {
-  margin: 0;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Wrapper to allow horizontal scroll on small screens */
-.table-wrapper {
-  overflow-x: auto;
-}
-
-#books-table, #students-table, #checkouts-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-#books-table th,
-#books-table td, 
-#students-table th, 
-#students-table td, 
-#checkouts-table th,
-#checkouts-table td {
-  /* This ensures the 'Actions' header is left-aligned */
-  text-align: left;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  vertical-align: middle; /* Vertically centers all cell content */
-
-  /* Truncate long text */
-  max-width: 200px; /* Adjust as needed */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#books-table th, #students-table th, #checkouts-table th {
-  background-color: var(--color-background);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-}
-
-/* Striped rows */
-#books-table tbody tr:nth-child(even), 
-#students-table tbody tr:nth-child(even),
-#checkouts-table tbody tr:nth-child(even) {
-  background-color: var(--color-background);
-}
-
-/* Hover effect */
-#books-table tbody tr:hover, 
-#students-table tbody tr:hover,
-#checkouts-table tbody tr:hover {
-  background-color: var(--color-primary-light);
-}
-
-#books-table tbody tr:last-child th,
-#books-table tbody tr:last-child td,
-#students-table tbody tr:last-child th,
-#students-table tbody tr:last-child td, 
-#checkouts-table tbody tr:last-child th,
-#checkouts-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-#books-table .actions, #students-table .actions, #checkouts-table .actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-start;
-  white-space: nowrap;
-
-  /* --- REQUIRED FOR DROPDOWN --- */
-  position: relative; /* Allows absolute positioning of the dropdown */
-  overflow: visible; /* Allows dropdown to show outside the cell */
-  /* --- END REQUIRED --- */
-
-  text-overflow: clip;
-  max-width: none;
-}
-
-.action-btn-sm {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.3rem;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: all 0.2s ease;
-}
-.action-btn-sm:hover {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-text);
-}
-
-/* --- 9b. Action Menu Dropdown Styles --- */
-.action-menu-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.action-menu-dropdown {
-  display: none; /* Hidden by default (JS toggles this) */
-  position: absolute;
-  right: 0;
-  top: calc(100% + 5px); /* Position it below the 3-dot button */
-  z-index: 10;
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-medium);
-  width: 170px; /* Set a fixed width for the menu */
-  overflow: hidden; /* Clips the corners of the menu items */
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  color: var(--color-text);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.menu-item:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-}
-
-.menu-item i {
-  color: var(--color-text-muted);
-  width: 18px;
-  height: 18px;
-  transition: color 0.2s ease;
-}
-
-/* Make icon color match text on hover */
-.menu-item:hover i {
-  color: var(--color-primary);
-}
-
-/* Special color for the delete item */
-.menu-item.delete-item {
-  color: var(--color-icon-checked-out); /* Use your existing red variable */
-}
-
-.menu-item.delete-item:hover {
-  background-color: #fee2e2; /* A light red background */
-  color: var(--color-icon-checked-out);
-}
-
-.menu-item.delete-item:hover i,
-.menu-item.delete-item i {
-  color: var(--color-icon-checked-out);
-}
-
-/* --- 10. Responsive Adjustments --- */
-@media (max-width: 768px) {
-  #books-table, #students-table, #checkouts-table {
-    table-layout: auto; /* Let the browser decide column widths */
-  }
-
-  #books-table th,
-  #books-table td,
-  #students-table th,
-  #students-table td,
-  #checkouts-table th,
-  #checkouts-table td {
-    max-width: none; /* Allow cells to expand */
-    white-space: normal; /* Allow text to wrap */
-    text-overflow: clip; /* Don't show ellipsis */
-    overflow-wrap: break-word; /* Wrap long words */
-  }
-}
-
-/* ============================
-  --- 11. Modal Styles ---
-  ============================
-*/
+/* --- MODAL STYLES --- */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4); 
+  backdrop-filter: blur(2px);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
 .modal-content {
-  background: var(--color-card);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: var(--shadow-medium);
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
 }
 
-.modal-content h3 {
-  margin-top: 0;
-  color: var(--color-text);
-}
-
-.modal-content p {
-  color: var(--color-text-muted);
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
+.form-group { margin-bottom: 20px; }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
 }
 
-/* Style select and date inputs like other inputs */
-.form-group select,
-.form-group input[type="date"] {
+.form-group input, .form-group select {
   width: 100%;
-  padding: 0.75rem;
+  padding: 10px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  box-sizing: border-box; /* Ensures padding doesn't break layout */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background-color: var(--color-card);
-  color: var(--color-text);
-  /* Added for iOS styling */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Add custom dropdown arrow for select */
-.form-group select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 10 13 14 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1em;
-  padding-right: 2.5rem; /* Make space for arrow */
-}
-
-.form-group select:focus,
-.form-group input[type="date"]:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-/* ============================
-  --- (NEW) 12. Tom Select Customization ---
-  ============================
-  This section makes the new searchable dropdown
-  match the style of your other form inputs.
-*/
-
-/* Styles the main input box */
-.modal-content .ts-control {
-  /* Copy visual styles from .form-group input */
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background-color: var(--color-card);
-  color: var(--color-text);
-  box-shadow: none; /* Remove Tom Select's default shadow */
-}
-
-/* Style for when the input is focused */
-.modal-content .ts-control.focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-/* Style for the dropdown menu itself */
-.modal-content .ts-dropdown {
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background: var(--color-card);
-  box-shadow: var(--shadow-medium);
-  margin-top: 0.25rem;
-}
-
-/* Style for the items in the dropdown */
-.modal-content .ts-option {
-  padding: 0.75rem 0.75rem;
+  border-radius: 8px;
   font-size: 0.95rem;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+  background-color: white;
 }
 
-/* Style for hovered or active item */
-.modal-content .ts-option.active,
-.modal-content .ts-option:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Style for the placeholder text */
-.modal-content .ts-control .ts-input::placeholder {
-  color: var(--color-text-muted);
-  opacity: 1;
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
 }
 
-/* --- CUSTOM SCROLLBAR STYLING (ADDED) --- */
-/* Works on Chrome, Edge, and Safari */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
+.btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
 
-::-webkit-scrollbar-track {
-    background: transparent; 
+.btn-secondary {
+  background: white;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
 }
+.btn-secondary:hover { background: #f8fafc; }
 
-::-webkit-scrollbar-thumb {
-    background-color: #d1d5db; /* Light gray thumb */
-    border-radius: 4px; /* Rounded edges */
-    border: 2px solid transparent; /* Creates a 'padding' effect */
-    background-clip: content-box;
-}
 
-::-webkit-scrollbar-thumb:hover {
-    background-color: #9ca3af; /* Darker on hover */
-}
+/* =========================================
+   --- MOBILE RESPONSIVENESS (UPDATED) --- 
+   ========================================= */
+@media (max-width: 768px) {
+  /* 1. Sidebar starts Hidden (handled by JS adding class, but default CSS here too) */
+  .page-container.sidebar-hidden .sidebar {
+    transform: translateX(-100%);
+    width: 0;
+    opacity: 0;
+  }
+  
+  /* 2. When sidebar is OPEN (no class), it floats over content */
+  .sidebar {
+    position: absolute;
+    height: 100%;
+    /* Shadow specifically for mobile drawer effect */
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+  }
 
-/* Firefox support */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+  /* 3. Backdrop Blur Effect when sidebar is OPEN */
+  .page-container:not(.sidebar-hidden) .main-content {
+    position: relative; /* Context for pseudo-element */
+  }
+
+  .page-container:not(.sidebar-hidden) .main-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.4); /* Darkened overlay */
+    backdrop-filter: blur(2px);
+    z-index: 40; /* Sit below sidebar (50) but above content (10) */
+  }
 }

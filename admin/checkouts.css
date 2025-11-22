@@ -1,3 +1,10 @@
+/* --- CRITICAL FIX: Override dashboard.css to allow scrolling --- */
+body {
+    overflow-y: auto !important; /* Enables vertical scrolling */
+    height: auto !important; /* Allows body to grow with content */
+    padding-bottom: 40px; /* Space at bottom */
+}
+
 /* --- Global Reset for this module to prevent layout breakage --- */
 .checkouts-grid *, .filter-toolbar-container * {
     box-sizing: border-box;
@@ -9,6 +16,7 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     padding: 20px 0;
+    padding-bottom: 40px; /* Extra space at bottom */
 }
 
 /* --- Individual Card Styling --- */
@@ -89,6 +97,15 @@
     color: #64748b;
 }
 
+.status-overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.checkout-card.overdue {
+    border-color: #fca5a5;
+}
+
 /* --- Action Buttons --- */
 .card-actions {
     margin-top: auto;
@@ -128,6 +145,11 @@
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 25px;
+    
+    /* Optional: Make filter sticky on desktop if desired, currently static */
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .filter-header {
@@ -219,6 +241,11 @@
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
+    /* Disable sticky header on mobile to prevent covering content */
+    .filter-toolbar-container {
+        position: static !important;
+    }
+
     .filter-controls {
         flex-direction: column;
         align-items: stretch;

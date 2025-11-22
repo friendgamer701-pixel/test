@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library History - Student Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="student_portal.css">
+</head>
+<body>
+    
+    <div class="portal-container">
+        
+        <!-- Header -->
+        <header class="portal-header">
+            <div class="logo-area">
+                <i data-lucide="book-open-check"></i>
+                <span>LibraryHub Student Portal</span>
+            </div>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="card login-card">
+            <div class="login-header">
+                <h2>Check Your History</h2>
+                <p>Enter your details to view borrowed books</p>
+            </div>
+            
+            <form id="student-login-form">
+                <div class="form-group">
+                    <label>Admission Number</label>
+                    <input type="text" id="admission_no" placeholder="e.g. S101" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob" required>
+                </div>
+
+                <button type="submit" class="btn-primary" id="login-btn">
+                    View Records
+                </button>
+            </form>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+
+        <!-- Results Section (Hidden by default) -->
+        <div id="results-section" class="results-wrapper" style="display: none;">
+            
+            <div class="student-profile-bar">
+                <div class="profile-info">
+                    <div class="avatar-circle" id="profile-avatar">AB</div>
+                    <div>
+                        <h3 id="profile-name">Student Name</h3>
+                        <span id="profile-dept">Department</span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn-secondary">Exit</button>
+            </div>
+
+            <div class="card history-card">
+                <h3>Checkout History</h3>
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Book Title</th>
+                                <th>Borrowed Date</th>
+                                <th>Due Date</th>
+                                <th>Returned Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-records-msg" class="empty-state" style="display: none;">
+                    <i data-lucide="library"></i>
+                    <p>No checkout records found.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+    <script type="module" src="student_portal.js"></script>
+</body>
+</html>

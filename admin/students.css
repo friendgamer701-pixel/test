@@ -1,3 +1,21 @@
+/* --- CRITICAL FIX: Override dashboard.css to allow scrolling --- */
+body {
+    overflow-y: auto !important; /* Enables vertical scrolling */
+    height: auto !important; /* Allows body to grow with content */
+    padding-bottom: 40px; /* Space at bottom for last dropdowns */
+}
+
+/* --- ALIGNMENT FIX FOR ADD STUDENT BUTTON --- */
+#add-student-btn {
+    display: inline-flex;       /* Enables flexbox alignment */
+    align-items: center;        /* Vertically centers icon and text */
+    justify-content: center;    /* Horizontally centers content */
+    gap: 8px;                   /* Uniform space between icon and text */
+    line-height: 1;             /* Removes text line-height offsets */
+    padding-top: 10px;          /* Ensure even padding */
+    padding-bottom: 10px;
+}
+
 /* --- Header & Filter Controls --- */
 .header-with-action {
     display: flex;
@@ -6,6 +24,13 @@
     margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 16px;
+    
+    /* Sticky Header: Good for desktop, overridden for mobile below */
+    position: sticky;
+    top: 0;
+    background-color: #f8fafc; 
+    z-index: 10;
+    padding: 10px 0;
 }
 
 .action-controls {
@@ -92,6 +117,10 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
     border: 1px solid #e5e7eb;
+    
+    /* Ensure form sits on top of any accidental overlaps */
+    position: relative;
+    z-index: 5;
 }
 
 .add-form h3 {
@@ -148,6 +177,7 @@
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
     gap: 24px;
     padding: 10px 0;
+    padding-bottom: 20px; 
 }
 
 /* --- Card Styling --- */
@@ -161,7 +191,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible; 
 }
 
 .student-card:hover {
@@ -178,6 +208,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
 }
 
 .student-identity {
@@ -323,7 +355,6 @@
 .delete-item:hover { background: #fef2f2; color: #dc2626; }
 
 /* --- CUSTOM SCROLLBAR STYLING --- */
-/* Works on Chrome, Edge, and Safari */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -348,4 +379,43 @@
 * {
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
+}
+
+/* =========================================
+   --- MOBILE RESPONSIVENESS (UPDATED) --- 
+   ========================================= */
+@media (max-width: 768px) {
+    /* CRITICAL FIX FOR MOBILE:
+       Disable sticky header on mobile. The vertical stack is too tall 
+       and covers the content when scrolling.
+    */
+    .header-with-action {
+        position: static !important; /* Let it scroll up with the page */
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .action-controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .search-wrapper, 
+    .select-wrapper, 
+    #add-student-btn {
+        width: 100% !important;
+        min-width: 100% !important;
+        flex: none; 
+    }
+    
+    .search-input, 
+    .filter-dropdown {
+        width: 100% !important;
+    }
+    
+    #add-student-btn {
+        justify-content: center;
+    }
 }

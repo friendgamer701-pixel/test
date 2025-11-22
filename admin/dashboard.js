@@ -42,13 +42,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // --- MOBILE SIDEBAR FIX START ---
+  // 1. Check screen size on load and auto-hide sidebar if mobile
+  if (window.innerWidth <= 768) {
+    pageContainer.classList.add("sidebar-hidden");
+  }
+
+  // 2. Show the page content
   if (pageContainer) pageContainer.style.visibility = "visible";
 
+  // 3. Toggle Logic
   if (menuToggle && pageContainer) {
-    menuToggle.addEventListener("click", () => {
-      pageContainer.classList.toggle("sidebar-hidden");
+    menuToggle.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent immediate closing
+        pageContainer.classList.toggle("sidebar-hidden");
     });
   }
+
+  // 4. Click Outside to Close (Mobile Only)
+  document.addEventListener("click", (e) => {
+    // Only run on mobile
+    if (window.innerWidth <= 768) {
+        // If sidebar is OPEN (class removed)
+        if (!pageContainer.classList.contains("sidebar-hidden")) {
+            // If click is NOT on the sidebar itself and NOT on the toggle button
+            if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle')) {
+                pageContainer.classList.add("sidebar-hidden");
+            }
+        }
+    }
+  });
+  // --- MOBILE SIDEBAR FIX END ---
 
   if (logoutButton) {
     logoutButton.addEventListener("click", async () => {
@@ -98,6 +122,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       dashboardSection.style.display = "none";
       contentFrame.style.display = "block";
       contentFrame.src = `${sectionName}.html`;
+    }
+    
+    // Auto-close sidebar on mobile after navigation
+    if (window.innerWidth <= 768) {
+        pageContainer.classList.add("sidebar-hidden");
     }
   };
 
