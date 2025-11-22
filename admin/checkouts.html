@@ -5,29 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Checkouts</title>
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="checkouts.css">
 </head>
 <body>
     <div id="checkouts-section" class="content-section" style="display: block;">
-        <div class="header-with-action">
-            <h2>Manage Checkouts</h2>
+        
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-toolbar-container">
+            <div class="filter-header">
+                <i data-lucide="filter" size="18"></i>
+                <span>Explore & Filter Checkouts</span>
+            </div>
+            
+            <div class="filter-controls">
+                <!-- Search Input -->
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="local-search" placeholder="Search student, book, or ID...">
+                </div>
+
+                <!-- Status Dropdown (UPDATED) -->
+                <select id="filter-status" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="checked_out">Active (Borrowed)</option>
+                    <option value="overdue">Overdue</option> <!-- NEW OPTION -->
+                    <option value="returned">Returned</option>
+                </select>
+
+                <!-- Sort Dropdown -->
+                <select id="sort-order" class="filter-select">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+
+                <!-- Clear Button -->
+                <button id="clear-filters" class="btn-clear">Clear</button>
+            </div>
         </div>
 
-        <div class="table-wrapper">
-            <table id="checkouts-table">
-                <thead>
-                    <tr>
-                        <th>Book Title</th>
-                        <th>Student Name</th>
-                        <th>Checkout Date</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="checkouts-table-body"></tbody>
-            </table>
+        <!-- Grid Container -->
+        <div id="checkouts-grid" class="checkouts-grid">
+            <!-- Cards inject here -->
         </div>
     </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>lucide.createIcons();</script>
     <script type="module" src="checkouts.js"></script>
