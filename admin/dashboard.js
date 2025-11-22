@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const contentFrame = document.getElementById("content-frame");
   const searchInput = document.getElementById("search-box");
 
+  // Modal Elements
   const checkoutModal = document.getElementById("checkout-modal");
   const checkoutForm = document.getElementById("checkout-form");
   const cancelCheckoutBtn = document.getElementById("cancel-checkout-btn");
@@ -16,13 +17,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const checkoutBookIdInput = document.getElementById("checkout-book-id");
   const studentSelect = document.getElementById("student-select");
   const dueDateInput = document.getElementById("due-date-select");
+  
+  // New Filter Elements
+  const yearFilterSelect = document.getElementById("checkout-filter-year");
+  const deptFilterSelect = document.getElementById("checkout-filter-dept");
 
   let studentSelectInstance = null;
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  // --- Auth Check ---
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.warn("No logged-in user found. Running in open mode.");
   }
@@ -39,9 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  if (pageContainer) {
-    pageContainer.style.visibility = "visible";
-  }
+  if (pageContainer) pageContainer.style.visibility = "visible";
 
   if (menuToggle && pageContainer) {
     menuToggle.addEventListener("click", () => {
@@ -51,140 +52,153 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (logoutButton) {
     logoutButton.addEventListener("click", async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Error logging out:", error.message);
-      } else {
-        window.location.href = "/login/auth.html";
-      }
+      await supabase.auth.signOut();
+      window.location.href = "/login/auth.html";
     });
   }
 
+  // --- Stats Logic ---
   const fetchStats = async () => {
     const [
-      { data: booksData, error: booksError },
-      { count: checkedOutCount, error: checkedOutError },
-      { count: studentsCount, error: studentsError },
+      { data: booksData },
+      { count: checkedOutCount },
+      { count: studentsCount },
     ] = await Promise.all([
       supabase.from("books").select("total_copies, available_copies"),
-      supabase
-        .from("checkouts")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "checked_out"),
-      supabase
-        .from("student")
-        .select("*", { count: "exact", head: true }),
+      supabase.from("checkouts").select("*", { count: "exact", head: true }).eq("status", "checked_out"),
+      supabase.from("student").select("*", { count: "exact", head: true }),
     ]);
 
-    if (booksError) console.error("Error fetching books:", booksError.message);
-    if (checkedOutError)
-      console.error("Error fetching checkouts:", checkedOutError.message);
-    if (studentsError)
-      console.error("Error fetching students:", studentsError.message);
-
-    const totalBooks =
-      booksData?.reduce((sum, book) => sum + (book.total_copies || 0), 0) || 0;
-    const availableBooks =
-      booksData?.reduce((sum, book) => sum + (book.available_copies || 0), 0) ||
-      0;
+    const totalBooks = booksData?.reduce((sum, book) => sum + (book.total_copies || 0), 0) || 0;
+    const availableBooks = booksData?.reduce((sum, book) => sum + (book.available_copies || 0), 0) || 0;
+    
     document.getElementById("stats-total-books").textContent = totalBooks;
-    document.getElementById("stats-available-books").textContent =
-      availableBooks;
-    document.getElementById("stats-checked-out").textContent =
-      checkedOutCount || 0;
-    document.getElementById("stats-total-students").textContent =
-      studentsCount || 0;
+    document.getElementById("stats-available-books").textContent = availableBooks;
+    document.getElementById("stats-checked-out").textContent = checkedOutCount || 0;
+    document.getElementById("stats-total-students").textContent = studentsCount || 0;
   };
   await fetchStats();
 
-  supabase
-    .channel("dashboard-stats-updates")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "books" },
-      () => fetchStats()
-    )
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "checkouts" },
-      () => fetchStats()
-    )
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "student" },
-      () => fetchStats()
-    )
+  supabase.channel("dashboard-updates")
+    .on("postgres_changes", { event: "*", schema: "public", table: "books" }, fetchStats)
+    .on("postgres_changes", { event: "*", schema: "public", table: "checkouts" }, fetchStats)
+    .on("postgres_changes", { event: "*", schema: "public", table: "student" }, fetchStats)
     .subscribe();
 
+  // --- Navigation ---
   const navigateToSection = (sectionName) => {
     sidebarBtns.forEach((b) => b.classList.remove("active"));
-    const activeBtn = document.querySelector(
-      `.sidebar-btn[data-section="${sectionName}"]`
-    );
-    if (activeBtn) {
-      activeBtn.classList.add("active");
-    }
+    const activeBtn = document.querySelector(`.sidebar-btn[data-section="${sectionName}"]`);
+    if (activeBtn) activeBtn.classList.add("active");
 
-    if (sectionName === 'dashboard') {
-        dashboardSection.style.display = 'block';
-        contentFrame.style.display = 'none';
+    if (sectionName === "dashboard") {
+      dashboardSection.style.display = "block";
+      contentFrame.style.display = "none";
     } else {
-        dashboardSection.style.display = 'none';
-        contentFrame.style.display = 'block';
-        contentFrame.src = `${sectionName}.html`;
+      dashboardSection.style.display = "none";
+      contentFrame.style.display = "block";
+      contentFrame.src = `${sectionName}.html`;
     }
   };
 
   sidebarBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const sectionName = btn.dataset.section;
-      navigateToSection(sectionName);
-    });
+    btn.addEventListener("click", () => navigateToSection(btn.dataset.section));
   });
 
+  // --- FILTER LOGIC START ---
+  
+  // Function to fill the Year and Department dropdowns
+  const populateFilterDropdowns = async () => {
+    // Clear existing options (keep the first "All" option)
+    yearFilterSelect.innerHTML = '<option value="">All Years</option>';
+    deptFilterSelect.innerHTML = '<option value="">All Departments</option>';
+
+    // Fetch all students to find unique years and departments
+    const { data: students, error } = await supabase
+        .from("student")
+        .select("year, department");
+    
+    if (error || !students) return;
+
+    // Extract unique Years
+    const years = [...new Set(students.map(s => s.year).filter(y => y))].sort();
+    years.forEach(year => {
+        const opt = document.createElement("option");
+        opt.value = year;
+        opt.textContent = year;
+        yearFilterSelect.appendChild(opt);
+    });
+
+    // Extract unique Departments
+    const depts = [...new Set(students.map(s => s.department).filter(d => d))].sort();
+    depts.forEach(dept => {
+        const opt = document.createElement("option");
+        opt.value = dept;
+        opt.textContent = dept;
+        deptFilterSelect.appendChild(opt);
+    });
+  };
+
+  // Function to fetch students based on filters
   const fetchAndPopulateStudents = async () => {
     if (!studentSelectInstance) return;
 
     studentSelectInstance.clear();
     studentSelectInstance.clearOptions();
     studentSelectInstance.disable();
-    studentSelectInstance.settings.placeholder = "Loading students...";
+    studentSelectInstance.settings.placeholder = "Loading...";
     studentSelectInstance.refreshOptions(false);
 
-    const { data: students, error } = await supabase
-      .from("student")
-      .select("admission_no, student_name, email");
+    let query = supabase.from("student").select("admission_no, student_name, email, year, department, phone, section"); //
+
+    // Apply Filters if selected
+    const selectedYear = yearFilterSelect.value;
+    const selectedDept = deptFilterSelect.value;
+
+    if (selectedYear) query = query.eq("year", selectedYear);
+    if (selectedDept) query = query.eq("department", selectedDept);
+
+    const { data: students, error } = await query;
 
     if (error) {
       console.error("Error fetching students:", error);
       studentSelectInstance.settings.placeholder = "Error loading students";
       studentSelectInstance.enable();
-      studentSelectInstance.refreshOptions(false);
       return;
     }
 
-    if (students.length === 0) {
-      studentSelectInstance.settings.placeholder = "No students found";
+    if (!students || students.length === 0) {
+      studentSelectInstance.settings.placeholder = "No students match filters";
       studentSelectInstance.enable();
-      studentSelectInstance.refreshOptions(false);
       return;
     }
 
     students.forEach((student) => {
-      const studentName =
-        student.student_name || student.email || `ID: ${student.admission_no}`;
+      const studentName = student.student_name || student.email || `ID: ${student.admission_no}`;
+      
+      // Add Phone, Year, Dept to display text for searching
+      const extraDetails = [
+        student.phone ? `Ph: ${student.phone}` : null,
+        student.year ? `Yr: ${student.year}` : null,
+        student.department ? `Dept: ${student.department}` : null
+      ].filter(Boolean).join(" | ");
 
       studentSelectInstance.addOption({
         value: student.admission_no,
-        text: `${studentName} (${student.admission_no})`,
+        text: `${studentName} (${student.admission_no}) ${extraDetails ? '- ' + extraDetails : ''}`,
       });
     });
 
     studentSelectInstance.enable();
-    studentSelectInstance.settings.placeholder =
-      "Type to search for a student...";
+    studentSelectInstance.settings.placeholder = "Type Name, ID, or Phone...";
     studentSelectInstance.refreshOptions(false);
   };
+
+  // Listen for changes on filters to reload the list
+  if (yearFilterSelect) yearFilterSelect.addEventListener("change", fetchAndPopulateStudents);
+  if (deptFilterSelect) deptFilterSelect.addEventListener("change", fetchAndPopulateStudents);
+
+  // --- FILTER LOGIC END ---
 
   const openCheckoutModal = (bookId, bookTitle) => {
     checkoutModal.style.display = "flex";
@@ -195,29 +209,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     const twoWeeks = new Date(new Date().setDate(today.getDate() + 14));
     dueDateInput.value = twoWeeks.toISOString().split("T")[0];
 
+    // Initialize TomSelect if not exists
     if (!studentSelectInstance) {
       studentSelectInstance = new TomSelect("#student-select", {
         create: false,
-        sortField: {
-          field: "text",
-          direction: "asc",
-        },
-        placeholder: "Type to search for a student...",
+        sortField: { field: "text", direction: "asc" },
+        placeholder: "Type Name, ID, or Phone...",
+        maxOptions: 50 // Limit options for performance
       });
     }
 
+    // Load filters and students
+    populateFilterDropdowns();
     fetchAndPopulateStudents();
   };
-  
+
   window.openCheckoutModal = openCheckoutModal;
 
   const closeCheckoutModal = () => {
     checkoutModal.style.display = "none";
     checkoutForm.reset();
-
-    if (studentSelectInstance) {
-      studentSelectInstance.clear();
-    }
+    // Reset filters
+    yearFilterSelect.value = "";
+    deptFilterSelect.value = "";
+    if (studentSelectInstance) studentSelectInstance.clear();
   };
 
   const handleCheckoutSubmit = async (e) => {
@@ -237,30 +252,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("id", bookId)
       .single();
 
-    if (fetchError || !book) {
-      alert("Error finding book. Please try again.");
-      console.error(fetchError);
-      return;
-    }
-
-    if (book.available_copies < 1) {
-      alert("Sorry, this book is no longer available. The list will refresh.");
+    if (fetchError || !book || book.available_copies < 1) {
+      alert("Book unavailable. Please refresh.");
       closeCheckoutModal();
-      if(contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
+      if (contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
       return;
     }
 
-    const newAvailableCopies = book.available_copies - 1;
     const { error: updateError } = await supabase
       .from("books")
-      .update({ available_copies: newAvailableCopies })
+      .update({ available_copies: book.available_copies - 1 })
       .eq("id", bookId);
 
-    if (updateError) {
-      alert("Error updating book count. Please try again.");
-      console.error(updateError);
-      return;
-    }
+    if (updateError) return alert("Error updating book count.");
 
     const { error: insertError } = await supabase.from("checkouts").insert({
       book_id: bookId,
@@ -271,51 +275,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     if (insertError) {
-      alert(
-        "CRITICAL ERROR: Book count updated, but checkout record failed to create. Please manually check data."
-      );
-      console.error(insertError);
+      alert("Error creating record.");
       return;
     }
 
-    alert("Book checked out successfully!");
+    alert("Checkout successful!");
     closeCheckoutModal();
-    if(contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
+    if (contentFrame.contentWindow.fetchBooks) contentFrame.contentWindow.fetchBooks();
   };
 
-  if (checkoutForm) {
-    checkoutForm.addEventListener("submit", handleCheckoutSubmit);
-  }
-  if (cancelCheckoutBtn) {
-    cancelCheckoutBtn.addEventListener("click", closeCheckoutModal);
-  }
+  if (checkoutForm) checkoutForm.addEventListener("submit", handleCheckoutSubmit);
+  if (cancelCheckoutBtn) cancelCheckoutBtn.addEventListener("click", closeCheckoutModal);
   if (checkoutModal) {
     checkoutModal.addEventListener("click", (e) => {
-      if (e.target === checkoutModal) {
-        closeCheckoutModal();
-      }
+      if (e.target === checkoutModal) closeCheckoutModal();
     });
   }
 
   if (searchInput && contentFrame) {
     searchInput.addEventListener("input", () => {
-      const searchTerm = searchInput.value.trim();
-      const contentWindow = contentFrame.contentWindow;
-
-      if (contentWindow) {
-        if (typeof contentWindow.fetchBooks === 'function') {
-          contentWindow.fetchBooks(searchTerm);
-        } else if (typeof contentWindow.fetchStudents === 'function') {
-          contentWindow.fetchStudents(searchTerm);
-        } else if (typeof contentWindow.fetchCheckouts === 'function') {
-          contentWindow.fetchCheckouts(searchTerm);
-        }
-      }
+      const term = searchInput.value.trim();
+      const win = contentFrame.contentWindow;
+      if (win && win.fetchBooks) win.fetchBooks(term);
     });
-
-    searchInput.addEventListener("focus", () => {
-        navigateToSection('books');
-    });
+    searchInput.addEventListener("focus", () => navigateToSection("books"));
   }
 
   navigateToSection("dashboard");

@@ -1,0 +1,18 @@
+/* --- Books Page Specific Styles --- */
+
+#books-section .book-list-container {
+    /* Inherits generic container styles from dashboard.css */
+    margin-top: 1rem;
+}
+
+/* Specific tweaks for the Add Book Form if needed */
+#add-book-form .form-grid {
+    /* Ensure quantity field doesn't get too small */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* Ensure the ISBN column doesn't wrap weirdly */
+#books-table td:nth-child(3) {
+    font-family: monospace;
+    letter-spacing: 0.05em;
+}

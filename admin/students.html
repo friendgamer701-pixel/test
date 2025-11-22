@@ -4,27 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Students</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="dashboard.css"> 
+    <link rel="stylesheet" href="students.css">
 </head>
 <body>
     <div id="students-section" class="content-section" style="display: block;">
+        
+        <!-- Header -->
         <div class="header-with-action">
             <h2>Manage Students</h2>
-            <button id="add-student-btn" class="add-btn">
-                <i data-lucide="plus"></i>
-                <span>Add New Student</span>
-            </button>
+            <div class="action-controls">
+                
+                <!-- Search Bar -->
+                <div class="search-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="student-search" class="search-input" placeholder="Search by name, ID, or phone...">
+                </div>
+
+                <!-- NEW: Year Filter (Placed BEFORE Department) -->
+                <div class="select-wrapper">
+                    <select id="year-filter" class="filter-dropdown">
+                        <option value="">All Years</option>
+                        <!-- Options populated by JS -->
+                    </select>
+                    <i data-lucide="calendar" class="filter-icon"></i>
+                </div>
+
+                <!-- Department Filter -->
+                <div class="select-wrapper">
+                    <select id="department-filter" class="filter-dropdown">
+                        <option value="">All Departments</option>
+                    </select>
+                    <i data-lucide="filter" class="filter-icon"></i>
+                </div>
+                
+                <!-- Add Button -->
+                <button id="add-student-btn" class="add-btn">
+                    <i data-lucide="plus"></i>
+                    <span>Add New Student</span>
+                </button>
+            </div>
         </div>
+
+        <!-- Add/Edit Form -->
         <div id="add-student-form-container" style="display: none;">
             <form id="add-student-form" class="add-form">
                 <h3 id="student-form-title">Add a New Student</h3>
                 <input type="hidden" name="student_id" id="edit-student-id">
+                
                 <div class="form-grid">
-                    <input type="text" name="name" placeholder="Name" required>
-                    <input type="text" name="admission_no" placeholder="Admission Number" required>
-                    <input type="email" name="email" placeholder="Email" required>
-                    <input type="text" name="department" placeholder="Department" required>
+                    <!-- Basic Info -->
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="name" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Admission Number</label>
+                        <input type="text" name="admission_no" placeholder="e.g. A123" required>
+                    </div>
+                    
+                    <!-- Contact Info -->
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="student@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" placeholder="e.g. 9876543210">
+                    </div>
+
+                    <!-- Academic Info -->
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" name="department" placeholder="e.g. CSE" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <input type="number" name="year" placeholder="e.g. 1" min="1" max="4">
+                    </div>
+                    <div class="form-group">
+                        <label>Section</label>
+                        <input type="text" name="section" placeholder="e.g. A">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dob">
+                    </div>
                 </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn-primary" id="save-student-btn">Save Student</button>
                     <button type="button" id="cancel-add-student-btn" class="btn-secondary">Cancel</button>
@@ -32,24 +99,15 @@
             </form>
         </div>
 
+        <!-- Cards Grid -->
         <div class="student-list-container">
             <h3>All Students</h3>
-            <div class="table-wrapper">
-                <table id="students-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Admission Number</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="students-table-body"></tbody>
-                </table>
+            <div id="students-grid" class="students-grid">
+                <!-- Cards injected by JS -->
             </div>
         </div>
     </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>lucide.createIcons();</script>
     <script type="module" src="students.js"></script>

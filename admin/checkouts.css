@@ -1,0 +1,19 @@
+/* --- Checkouts Page Specific Styles --- */
+
+/* Status Column Styling */
+#checkouts-table td:nth-child(5) {
+    font-weight: 600;
+}
+
+/* Example: You can use JS to add classes like 'overdue' and style them here */
+.status-overdue {
+    color: var(--color-icon-checked-out); /* Red */
+}
+
+.status-returned {
+    color: var(--color-icon-students); /* Green */
+}
+
+.status-active {
+    color: var(--color-icon-available); /* Amber/Orange */
+}
