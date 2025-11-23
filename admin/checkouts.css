@@ -106,6 +106,40 @@ body {
     border-color: #fca5a5;
 }
 
+/* --- OVERDUE STUDENT DETAILS (NEW) --- */
+.overdue-alert-box {
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 12px;
+}
+
+.alert-title {
+    color: #9f1239;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.alert-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #881337;
+}
+
+.alert-info span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* --- Action Buttons --- */
 .card-actions {
     margin-top: auto;

@@ -24,23 +24,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let studentSelectInstance = null;
 
-  // --- Auth Check ---
+  // --- SECURITY FIX: STRICT AUTH CHECK ---
   const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  // 1. If not logged in, Redirect immediately
   if (userError || !user) {
-    console.warn("No logged-in user found. Running in open mode.");
+    window.location.href = "/login/auth.html"; // Change this to your actual login page path
+    return; // Stop all execution here. The page remains hidden.
   }
 
+  // 2. Optional: Check Admin Role
+  // Only checks if user is logged in. If you want to strictly enforce "admin" role, uncomment below:
+  /*
   if (user) {
     const { data: roleData, error: roleError } = await supabase
       .from("user_roles")
-      .select("role, user_id")
+      .select("role")
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (roleError || !roleData || roleData.role !== "admin") {
-      console.warn("User is not admin. Allowing access for testing.");
+      alert("Access Denied: You are not an administrator.");
+      await supabase.auth.signOut();
+      window.location.href = "/login/auth.html";
+      return;
     }
   }
+  */
+  // ---------------------------------------
 
   // --- MOBILE SIDEBAR FIX START ---
   // 1. Check screen size on load and auto-hide sidebar if mobile
@@ -48,7 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     pageContainer.classList.add("sidebar-hidden");
   }
 
-  // 2. Show the page content
+  // 2. Show the page content (Only happens if user IS logged in)
   if (pageContainer) pageContainer.style.visibility = "visible";
 
   // 3. Toggle Logic

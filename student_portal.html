@@ -34,7 +34,9 @@
                 
                 <div class="form-group">
                     <label>Date of Birth</label>
-                    <input type="date" id="dob" required>
+                    <!-- UPDATED: Text input to force DD/MM/YYYY format -->
+                    <input type="text" id="dob" placeholder="DD/MM/YYYY" maxlength="10" required>
+                    <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">Format: DD/MM/YYYY (e.g. 15/05/2003)</small>
                 </div>
 
                 <button type="submit" class="btn-primary" id="login-btn">

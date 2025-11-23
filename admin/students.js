@@ -1,6 +1,14 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // --- SECURITY CHECK: Redirect if not logged in ---
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.href = "/login/auth.html"; // Redirect to login
+        return; 
+    }
+    // -------------------------------------------------
+
     // --- DOM Elements ---
     const studentsContainer = document.getElementById("students-grid");
     const searchInput = document.getElementById("student-search");

@@ -1,6 +1,14 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // --- SECURITY CHECK: Redirect if not logged in ---
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.href = "/login/auth.html"; // Redirect to login
+        return; 
+    }
+    // -------------------------------------------------
+
     const checkoutsGrid = document.getElementById("checkouts-grid");
     
     // UI Elements
@@ -16,12 +24,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fetchCheckouts = async () => {
         checkoutsGrid.innerHTML = '<p style="padding:20px; color:#64748b;">Loading checkouts...</p>';
 
+        // UPDATED: Fetch department, year, section, and phone
         const { data, error } = await supabase
             .from("checkouts")
             .select(`
                 *, 
                 books ( title ),
-                student ( student_name, admission_no, phone )
+                student ( student_name, admission_no, phone, department, year, section )
             `);
 
         if (error) {
@@ -36,17 +45,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 2. FILTER & SORT LOGIC ---
     const applyFiltersAndSort = () => {
-        // Safety check in case elements aren't loaded yet
         if (!localSearch || !filterStatus || !sortOrder) return;
 
         const searchTerm = localSearch.value.toLowerCase().trim();
-        const statusValue = filterStatus.value; // "checked_out", "returned", or "overdue"
+        const statusValue = filterStatus.value; 
         const sortValue = sortOrder.value;
-
-        // Get Today as a simple string "YYYY-MM-DD" to avoid Timezone issues
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // A. Filter
         let filtered = allCheckouts.filter(checkout => {
             // 1. Search Text Match
             const book = checkout.books?.title?.toLowerCase() || "";
@@ -59,26 +64,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             // 2. Status Match
             const isReturned = checkout.status === 'returned';
-            // Get Due Date as string (Supabase usually returns "YYYY-MM-DD")
             const dueDateStr = checkout.due_date ? checkout.due_date.split('T')[0] : ""; 
-
-            // Simple String Comparison: if "2023-11-20" < "2023-11-22", it is overdue.
             const isOverdue = !isReturned && dueDateStr && (dueDateStr < todayStr);
 
             let matchesStatus = true;
-
-            if (statusValue === 'checked_out') {
-                matchesStatus = !isReturned; // Shows Active AND Overdue
-            } else if (statusValue === 'returned') {
-                matchesStatus = isReturned;
-            } else if (statusValue === 'overdue') {
-                matchesStatus = isOverdue; // Shows ONLY Overdue
-            }
+            if (statusValue === 'checked_out') matchesStatus = !isReturned;
+            else if (statusValue === 'returned') matchesStatus = isReturned;
+            else if (statusValue === 'overdue') matchesStatus = isOverdue;
 
             return matchesSearch && matchesStatus;
         });
 
-        // B. Sort
+        // Sort
         filtered.sort((a, b) => {
             const dateA = new Date(a.checkout_date);
             const dateB = new Date(b.checkout_date);
@@ -101,23 +98,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         const todayStr = new Date().toISOString().split('T')[0];
 
         items.forEach(checkout => {
-            // Safe Data Access
             const bookTitle = checkout.books?.title || "(Deleted Book)";
             const studentName = checkout.student?.student_name || "Unknown";
             const admission = checkout.student?.admission_no || "";
             
+            // Student Details for Overdue
+            const phone = checkout.student?.phone || "N/A";
+            const dept = checkout.student?.department || "-";
+            const year = checkout.student?.year || "-";
+            const section = checkout.student?.section || "";
+
             const dateOut = new Date(checkout.checkout_date).toLocaleDateString();
-            // Format Due Date for Display
             const dateDueObj = new Date(checkout.due_date);
             const dateDueDisplay = dateDueObj.toLocaleDateString();
             
             const isReturned = checkout.status === 'returned';
-            
-            // Overdue Logic (Same String Comparison)
             const dueDateStr = checkout.due_date ? checkout.due_date.split('T')[0] : "";
             const isOverdue = !isReturned && dueDateStr && (dueDateStr < todayStr);
 
-            // Determine Styles
             let statusClass = 'status-active';
             let statusText = 'Active';
             let dateColor = 'inherit';
@@ -129,13 +127,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else if (isOverdue) {
                 statusClass = 'status-overdue';
                 statusText = 'Overdue';
-                dateColor = '#b91c1c'; // Red Text
-                cardClass = 'checkout-card overdue'; // Red Border
+                dateColor = '#b91c1c'; 
+                cardClass = 'checkout-card overdue'; 
             } else {
-                dateColor = '#15803d'; // Green Text
+                dateColor = '#15803d';
             }
 
-            // Build Card
             const card = document.createElement("div");
             card.className = cardClass;
             
@@ -144,6 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div class="book-title"><i data-lucide="book" size="18"></i> ${bookTitle}</div>
                     <div class="student-name"><i data-lucide="user" size="16"></i> ${studentName} <small>(${admission})</small></div>
                 </div>
+                
                 <div class="card-details">
                     <div class="detail-row"><span>Borrowed:</span> <strong>${dateOut}</strong></div>
                     <div class="detail-row">
@@ -156,7 +154,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                             ${statusText}
                         </span>
                     </div>
+
+                    <!-- NEW: Overdue Student Details Block -->
+                    ${isOverdue ? `
+                        <div class="overdue-alert-box">
+                            <div class="alert-title"><i data-lucide="alert-circle" size="14"></i> Student Contact</div>
+                            <div class="alert-info">
+                                <span><i data-lucide="phone" size="12"></i> ${phone}</span>
+                                <span><i data-lucide="building" size="12"></i> ${dept} - Yr ${year} ${section}</span>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
+
                 <div class="card-actions">
                     ${!isReturned ? `
                         <button class="return-btn" data-id="${checkout.id}" data-book-id="${checkout.book_id}">
@@ -175,13 +185,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     // --- 4. EVENT LISTENERS ---
-    
-    // Filter Inputs
     if(localSearch) localSearch.addEventListener("input", applyFiltersAndSort);
     if(filterStatus) filterStatus.addEventListener("change", applyFiltersAndSort);
     if(sortOrder) sortOrder.addEventListener("change", applyFiltersAndSort);
 
-    // Clear Button
     if(clearBtn) {
         clearBtn.addEventListener("click", () => {
             localSearch.value = "";
@@ -191,7 +198,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Global Search Sync
     if (globalSearch) {
         globalSearch.addEventListener("input", (e) => {
             if(localSearch) localSearch.value = e.target.value;
@@ -211,20 +217,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.disabled = true;
 
             try {
-                // Update Checkout Status
                 const { error: cErr } = await supabase.from('checkouts')
                     .update({ status: 'returned', returned_date: new Date().toISOString() })
                     .eq('id', checkoutId);
                 if (cErr) throw cErr;
 
-                // Update Book Count
                 const { data: book } = await supabase.from('books').select('available_copies').eq('id', bookId).single();
                 if (book) {
                     await supabase.from('books').update({ available_copies: (book.available_copies || 0) + 1 }).eq('id', bookId);
                 }
 
                 alert("Book returned successfully!");
-                fetchCheckouts(); // Reload Data
+                fetchCheckouts(); 
 
             } catch (err) {
                 console.error(err);
@@ -235,9 +239,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Expose fetch function to parent (for dashboard refreshes)
     window.fetchCheckouts = fetchCheckouts;
-
-    // Initial Load
     fetchCheckouts();
 });
