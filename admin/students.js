@@ -1,10 +1,11 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- SECURITY CHECK: Redirect if not logged in ---
+    // --- SECURITY CHECK: IFRAME BREAKOUT FIX ---
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        window.location.href = "/login/auth.html"; // Redirect to login
+        // Use window.top to redirect the MAIN window, not the iframe
+        window.top.location.href = "/login/auth.html"; 
         return; 
     }
     // -------------------------------------------------
@@ -13,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentsContainer = document.getElementById("students-grid");
     const searchInput = document.getElementById("student-search");
     const departmentFilter = document.getElementById("department-filter");
-    const yearFilter = document.getElementById("year-filter"); // NEW
+    const yearFilter = document.getElementById("year-filter"); 
 
     const addStudentBtn = document.getElementById("add-student-btn");
     const addStudentFormContainer = document.getElementById("add-student-form-container");
@@ -22,13 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 1. Load Filters (Departments & Years) ---
     const loadFilters = async () => {
-        // Fetch all departments and years to populate dropdowns
         const { data, error } = await supabase
             .from("student")
             .select("department, year");
         
         if (!error && data) {
-            // 1a. Populate Departments
             if (departmentFilter) {
                 const uniqueDepts = [...new Set(data.map(item => item.department).filter(Boolean))].sort();
                 departmentFilter.innerHTML = '<option value="">All Departments</option>';
@@ -40,9 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
             }
 
-            // 1b. Populate Years
             if (yearFilter) {
-                // Extract unique years, filter out nulls, and sort numerically
                 const uniqueYears = [...new Set(data.map(item => item.year).filter(Boolean))].sort((a, b) => a - b);
                 yearFilter.innerHTML = '<option value="">All Years</option>';
                 uniqueYears.forEach(yr => {
@@ -118,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 addStudentFormContainer.style.display = "none";
                 addStudentForm.reset();
                 fetchStudents();
-                loadFilters(); // Reload filters in case new data changed the options
+                loadFilters(); 
                 alert(successMessage);
             }
         });
@@ -132,17 +129,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         let query = supabase.from("student").select("*").order("student_name");
 
-        // Apply Department Filter
         if (selectedDept) {
             query = query.eq("department", selectedDept);
         }
 
-        // Apply Year Filter
         if (selectedYear) {
             query = query.eq("year", selectedYear);
         }
 
-        // Apply Search Filter
         if (searchTerm) {
             const filterTerm = `%${searchTerm}%`;
             query = query.or(
@@ -159,7 +153,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
-    // Listeners
     if (searchInput) searchInput.addEventListener("input", fetchStudents);
     if (departmentFilter) departmentFilter.addEventListener("change", fetchStudents);
     if (yearFilter) yearFilter.addEventListener("change", fetchStudents);
@@ -240,7 +233,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- 5. Event Delegation ---
     if (studentsContainer) {
         studentsContainer.addEventListener("click", async (e) => {
-            // Menu Toggle
             const toggleBtn = e.target.closest(".menu-toggle-btn");
             if (toggleBtn) {
                 e.preventDefault();
@@ -253,7 +245,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            // Menu Items
             const menuItem = e.target.closest(".menu-item");
             if (!menuItem) return;
 
@@ -262,7 +253,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const dropdown = menuItem.closest(".action-menu-dropdown");
             if (dropdown) dropdown.style.display = "none";
 
-            // Delete Logic
             if (menuItem.classList.contains("delete-student-btn")) {
                 const card = menuItem.closest(".student-card");
                 const studentName = card.querySelector(".student-name").textContent;
@@ -276,7 +266,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            // Edit Logic
             if (menuItem.classList.contains("edit-student-btn")) {
                 const { data: student, error } = await supabase
                     .from("student")

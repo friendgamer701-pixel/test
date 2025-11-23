@@ -19,6 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileAvatar = document.getElementById("profile-avatar");
     const tableBody = document.getElementById("history-table-body");
     const emptyState = document.getElementById("no-records-msg");
+    
+    // NEW: Overdue Warning Container
+    const historyCard = document.querySelector(".history-card");
+    let overdueAlert = document.getElementById("overdue-alert");
+
+    // Create the alert element dynamically if it doesn't exist
+    if (!overdueAlert) {
+        overdueAlert = document.createElement("div");
+        overdueAlert.id = "overdue-alert";
+        overdueAlert.className = "overdue-banner";
+        overdueAlert.innerHTML = `
+            <i data-lucide="alert-circle"></i>
+            <span>You have overdue books! Please return them to the library immediately.</span>
+        `;
+        overdueAlert.style.display = "none"; // Hidden by default
+        // Insert it before the table inside the history card
+        const tableResponsive = historyCard.querySelector(".table-responsive");
+        historyCard.insertBefore(overdueAlert, tableResponsive);
+    }
 
     // --- 0. Auto-Format Date Input (DD/MM/YYYY) ---
     dobInput.addEventListener('input', (e) => {
@@ -111,6 +130,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- 3. Render Table ---
     const renderTable = (checkouts) => {
         tableBody.innerHTML = "";
+        overdueAlert.style.display = "none"; // Reset alert
+        let hasOverdueBooks = false;
         
         if (!checkouts || checkouts.length === 0) {
             emptyState.style.display = "block";
@@ -145,13 +166,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusText = "Returned";
             } else {
                 // Check if overdue
-                // Need YYYY-MM-DD string for comparison
                 const dueDateStr = record.due_date.split('T')[0];
                 const isOverdue = dueDateStr < today;
                 
                 if (isOverdue) {
                     statusBadge = "status-overdue";
                     statusText = "Overdue";
+                    hasOverdueBooks = true; // Flag found overdue book
                 } else {
                     statusBadge = "status-active";
                     statusText = "Active";
@@ -167,6 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             tableBody.appendChild(tr);
         });
+
+        // Show Alert if any book is overdue
+        if (hasOverdueBooks) {
+            overdueAlert.style.display = "flex";
+            if (window.lucide) lucide.createIcons(); // Re-render icon
+        }
     };
 
     // --- 4. Utilities ---
@@ -187,5 +214,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loginBtn.textContent = "View Records";
         loginBtn.disabled = false;
         tableBody.innerHTML = "";
+        overdueAlert.style.display = "none";
     });
 });

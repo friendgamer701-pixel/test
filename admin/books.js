@@ -1,13 +1,13 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- SECURITY CHECK: Redirect if not logged in ---
+    // --- SECURITY CHECK: IFRAME BREAKOUT FIX ---
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        window.location.href = "/login/auth.html"; // Redirect to login
-        return; // Stop script execution
+        // Use window.top to redirect the MAIN window, not the iframe
+        window.top.location.href = "/login/auth.html"; 
+        return; 
     }
-    // -------------------------------------------------
 
     const tableBody = document.getElementById("books-table-body");
     const addBookBtn = document.getElementById("add-book-btn");
