@@ -1,13 +1,13 @@
 import { supabase } from "../supabase.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- SECURITY CHECK: IFRAME BREAKOUT FIX ---
+    // --- SECURITY CHECK ---
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        // Use window.top to redirect the MAIN window, not the iframe
         window.top.location.href = "/login/auth.html"; 
         return; 
     }
+    // ---------------------
 
     const tableBody = document.getElementById("books-table-body");
     const addBookBtn = document.getElementById("add-book-btn");
@@ -21,26 +21,104 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let activeDropdown = null;
 
-    // --- 1. Fetch & Render Books ---
-    const fetchBooks = async (searchTerm = "") => {
+    // --- PAGINATION VARIABLES ---
+    let currentPage = 1;
+    const itemsPerPage = 10; // Only load 10 books at a time
+    let currentSearchTerm = "";
+    let totalBooksCount = 0;
+
+    // --- 0. Setup Pagination UI (Next/Prev Buttons) ---
+    const setupPaginationUI = () => {
+        if (document.getElementById("pagination-wrapper")) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "pagination-wrapper";
+        wrapper.style.cssText = "display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 20px; padding: 20px;";
+        
+        wrapper.innerHTML = `
+            <span id="page-info" style="font-weight: 500; color: #374151; font-size: 0.9rem;">Page 1</span>
+            <div style="display: flex; gap: 8px;">
+                <button id="prev-page-btn" class="btn" style="padding: 6px 14px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; color: #374151;">Previous</button>
+                <button id="next-page-btn" class="btn" style="padding: 6px 14px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; color: #374151;">Next</button>
+            </div>
+        `;
+
+        // Insert after table
+        const table = document.querySelector("table");
+        if (table && table.parentElement) {
+            table.parentElement.appendChild(wrapper);
+        } else {
+            document.body.appendChild(wrapper);
+        }
+
+        document.getElementById("prev-page-btn").addEventListener("click", () => changePage(-1));
+        document.getElementById("next-page-btn").addEventListener("click", () => changePage(1));
+    };
+
+    const changePage = (direction) => {
+        const totalPages = Math.ceil(totalBooksCount / itemsPerPage);
+        const newPage = currentPage + direction;
+
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            fetchBooks(currentSearchTerm, false);
+        }
+    };
+
+    const updatePaginationButtons = () => {
+        const totalPages = Math.ceil(totalBooksCount / itemsPerPage) || 1;
+        const prevBtn = document.getElementById("prev-page-btn");
+        const nextBtn = document.getElementById("next-page-btn");
+        const info = document.getElementById("page-info");
+
+        if (info) info.textContent = `Page ${currentPage} of ${totalPages} (${totalBooksCount} books)`;
+        
+        if (prevBtn) {
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.style.opacity = currentPage === 1 ? "0.5" : "1";
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = currentPage >= totalPages;
+            nextBtn.style.opacity = currentPage >= totalPages ? "0.5" : "1";
+        }
+    };
+
+    // --- 1. Fetch & Render Books (Optimized) ---
+    const fetchBooks = async (searchTerm = "", resetPage = false) => {
+        if (resetPage) currentPage = 1;
+        currentSearchTerm = searchTerm;
+
+        // Show Loading State
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #6b7280;">Loading books...</td></tr>`;
+
+        // Start Query
         let query = supabase
             .from("books")
-            .select("*")
-            .order("title");
+            .select("*", { count: 'exact' }); // Get total count for pagination
 
+        // Apply Search
         if (searchTerm) {
-            // UPDATED: Now searches Title OR ISBN OR Author
             query = query.or(`title.ilike.%${searchTerm}%,isbn.ilike.%${searchTerm}%,author.ilike.%${searchTerm}%`);
         }
 
-        const { data: books, error } = await query;
+        // Apply Pagination (Server-Side)
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
+
+        query = query.order("title", { ascending: true }).range(from, to);
+
+        const { data: books, error, count } = await query;
 
         if (error) {
             console.error("Error loading books:", error);
-            tableBody.innerHTML = `<tr><td colspan="6" class="loading-cell" style="color:red">Error loading data.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error loading data.</td></tr>`;
             return;
         }
 
+        if (count !== null) totalBooksCount = count;
+        
+        updatePaginationButtons();
         renderTable(books);
     };
 
@@ -48,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         tableBody.innerHTML = "";
 
         if (books.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="loading-cell">No books found.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #6b7280;">No books found.</td></tr>`;
             return;
         }
 
@@ -90,19 +168,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 2. Menu Logic (Dropdowns) ---
     tableBody.addEventListener("click", (e) => {
-        // Toggle Dropdown
         const dotsBtn = e.target.closest(".action-btn-dots");
         if (dotsBtn) {
             e.stopPropagation();
             const id = dotsBtn.dataset.id;
             const menu = document.getElementById(`menu-${id}`);
             
-            // Close others
+            // Close other menus
             if (activeDropdown && activeDropdown !== menu) {
                 activeDropdown.style.display = "none";
             }
 
-            // Toggle current
+            // Toggle current menu
             if (menu.style.display === "block") {
                 menu.style.display = "none";
                 activeDropdown = null;
@@ -113,12 +190,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        // Handle Actions inside dropdown
         const actionBtn = e.target.closest(".dropdown-item");
         if (actionBtn) {
             const id = actionBtn.dataset.id;
             const menu = actionBtn.closest(".dropdown-menu");
-            menu.style.display = "none"; // Close menu immediately
+            menu.style.display = "none";
             activeDropdown = null;
 
             if (actionBtn.classList.contains("delete-btn")) {
@@ -127,7 +203,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 handleEdit(id);
             } else if (actionBtn.classList.contains("checkout-btn")) {
                 const title = actionBtn.dataset.title;
-                // Calls the function in the PARENT window (dashboard.js)
                 if (window.parent && window.parent.openCheckoutModal) {
                     window.parent.openCheckoutModal(id, title);
                 } else {
@@ -137,7 +212,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Close menu when clicking outside
     document.addEventListener("click", () => {
         if (activeDropdown) {
             activeDropdown.style.display = "none";
@@ -186,6 +260,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             available_copies: parseInt(formData.get("available_copies"))
         };
 
+        if (bookData.available_copies > bookData.total_copies) {
+            alert("Error: 'Available Copies' cannot be greater than 'Total Copies'.");
+            return; 
+        }
+
         let error;
         if (id) {
             const { error: updateError } = await supabase.from("books").update(bookData).eq("id", id);
@@ -199,7 +278,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Error saving book: " + error.message);
         } else {
             bookModal.style.display = "none";
-            fetchBooks();
+            fetchBooks(currentSearchTerm, false);
         }
     });
 
@@ -212,13 +291,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const handleDelete = async (id) => {
         if (confirm("Are you sure you want to delete this book?")) {
             const { error } = await supabase.from("books").delete().eq("id", id);
-            if (!error) fetchBooks();
+            if (!error) fetchBooks(currentSearchTerm, false);
             else alert("Error deleting book.");
         }
     };
 
-    // Expose fetchBooks for parent search bar
-    window.fetchBooks = fetchBooks;
-
+    // --- INIT ---
+    setupPaginationUI();
     fetchBooks();
+
+    // Expose for dashboard.js search bar
+    window.fetchBooks = (term) => fetchBooks(term, true);
 });

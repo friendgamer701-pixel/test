@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- SECURITY CHECK: IFRAME BREAKOUT FIX ---
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        // Use window.top to redirect the MAIN window, not the iframe
         window.top.location.href = "/login/auth.html"; 
         return; 
     }
@@ -21,7 +20,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cancelAddStudentBtn = document.getElementById("cancel-add-student-btn");
     const addStudentForm = document.getElementById("add-student-form");
 
-    // --- 1. Load Filters (Departments & Years) ---
+    // --- PAGINATION VARIABLES ---
+    let currentPage = 1;
+    const itemsPerPage = 10; 
+    let currentSearchTerm = "";
+    let totalStudentsCount = 0;
+    let debounceTimer;
+
+    // --- 0. Setup Pagination UI (FIXED LAYOUT) ---
+    const setupPaginationUI = () => {
+        if (document.getElementById("pagination-wrapper")) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "pagination-wrapper";
+        
+        // Full-width footer style to eliminate the "gap" look
+        wrapper.style.cssText = `
+            width: 100%;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #e2e8f0;
+        `;
+        
+        wrapper.innerHTML = `
+            <span id="page-info" style="font-weight: 500; color: #64748b; font-size: 0.9rem;">Page 1</span>
+            <div style="display: flex; gap: 10px;">
+                <button id="prev-page-btn" class="btn" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer; color: #334155; font-size: 0.9rem; transition: all 0.2s;">Previous</button>
+                <button id="next-page-btn" class="btn" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer; color: #334155; font-size: 0.9rem; transition: all 0.2s;">Next</button>
+            </div>
+        `;
+
+        // Append to parent so it sits strictly below the grid
+        studentsContainer.parentNode.appendChild(wrapper);
+
+        // Add hover effects via JS
+        const btns = wrapper.querySelectorAll("button");
+        btns.forEach(btn => {
+            btn.onmouseover = () => btn.style.background = "#f1f5f9";
+            btn.onmouseout = () => btn.style.background = "white";
+        });
+
+        document.getElementById("prev-page-btn").addEventListener("click", () => changePage(-1));
+        document.getElementById("next-page-btn").addEventListener("click", () => changePage(1));
+    };
+
+    const changePage = (direction) => {
+        const totalPages = Math.ceil(totalStudentsCount / itemsPerPage);
+        const newPage = currentPage + direction;
+
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            fetchStudents(currentSearchTerm, false);
+        }
+    };
+
+    const updatePaginationButtons = () => {
+        const totalPages = Math.ceil(totalStudentsCount / itemsPerPage) || 1;
+        const prevBtn = document.getElementById("prev-page-btn");
+        const nextBtn = document.getElementById("next-page-btn");
+        const info = document.getElementById("page-info");
+
+        if (info) info.textContent = `Page ${currentPage} of ${totalPages} (${totalStudentsCount} students)`;
+        
+        if (prevBtn) {
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.style.opacity = currentPage === 1 ? "0.5" : "1";
+            prevBtn.style.cursor = currentPage === 1 ? "not-allowed" : "pointer";
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = currentPage >= totalPages;
+            nextBtn.style.opacity = currentPage >= totalPages ? "0.5" : "1";
+            nextBtn.style.cursor = currentPage >= totalPages ? "not-allowed" : "pointer";
+        }
+    };
+
+    // --- 1. Load Filters ---
     const loadFilters = async () => {
         const { data, error } = await supabase
             .from("student")
@@ -114,7 +192,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else {
                 addStudentFormContainer.style.display = "none";
                 addStudentForm.reset();
-                fetchStudents();
+                fetchStudents(currentSearchTerm, false);
                 loadFilters(); 
                 alert(successMessage);
             }
@@ -122,40 +200,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- 3. Fetch & Filter Logic ---
-    const fetchStudents = async () => {
-        const searchTerm = searchInput ? searchInput.value.trim() : "";
+    const fetchStudents = async (searchTerm = "", resetPage = false) => {
+        if (resetPage) currentPage = 1;
+        currentSearchTerm = searchTerm;
+
+        // Show Loading
+        studentsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #666; padding: 40px;">Loading students...</p>';
+
         const selectedDept = departmentFilter ? departmentFilter.value : "";
         const selectedYear = yearFilter ? yearFilter.value : "";
 
-        let query = supabase.from("student").select("*").order("student_name");
+        let query = supabase
+            .from("student")
+            .select("*", { count: 'exact' });
 
-        if (selectedDept) {
-            query = query.eq("department", selectedDept);
-        }
-
-        if (selectedYear) {
-            query = query.eq("year", selectedYear);
-        }
+        if (selectedDept) query = query.eq("department", selectedDept);
+        if (selectedYear) query = query.eq("year", selectedYear);
 
         if (searchTerm) {
             const filterTerm = `%${searchTerm}%`;
-            query = query.or(
-                `student_name.ilike.${filterTerm},admission_no.ilike.${filterTerm},email.ilike.${filterTerm},department.ilike.${filterTerm},phone.ilike.${filterTerm}`
-            );
+            query = query.or(`student_name.ilike.${filterTerm},admission_no.ilike.${filterTerm},email.ilike.${filterTerm}`);
         }
 
-        const { data: students, error } = await query;
+        // Apply Pagination
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
+        
+        query = query.order("student_name").range(from, to);
+
+        const { data: students, error, count } = await query;
         
         if (error) {
             console.error("Error fetching students:", error);
-        } else {
-            displayStudents(students);
+            studentsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: red;">Error loading data.</p>';
+            return;
         }
+
+        if (count !== null) totalStudentsCount = count;
+        updatePaginationButtons();
+        displayStudents(students);
     };
 
-    if (searchInput) searchInput.addEventListener("input", fetchStudents);
-    if (departmentFilter) departmentFilter.addEventListener("change", fetchStudents);
-    if (yearFilter) yearFilter.addEventListener("change", fetchStudents);
+    // --- Listeners with Debounce ---
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                fetchStudents(e.target.value.trim(), true);
+            }, 500);
+        });
+    }
+
+    if (departmentFilter) departmentFilter.addEventListener("change", () => fetchStudents(currentSearchTerm, true));
+    if (yearFilter) yearFilter.addEventListener("change", () => fetchStudents(currentSearchTerm, true));
 
     // --- 4. Display Cards ---
     const displayStudents = (students) => {
@@ -163,7 +260,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         studentsContainer.innerHTML = "";
         
         if (!students || students.length === 0) {
-            studentsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #666; padding: 20px;">No students found matching your criteria.</p>';
+            studentsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #666; padding: 20px;">No students found.</p>';
             return;
         }
 
@@ -260,7 +357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const { error } = await supabase.from("student").delete().eq("admission_no", id);
                     if (error) alert(`Error: ${error.message}`);
                     else {
-                        fetchStudents();
+                        fetchStudents(currentSearchTerm, false);
                         loadFilters();
                     }
                 }
@@ -306,5 +403,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    setupPaginationUI();
     fetchStudents();
 });
