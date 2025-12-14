@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LibraryHub | Your Digital Learning Companion</title>
 
-    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,30 +13,41 @@
     />
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Global Styles -->
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Navigation -->
     <nav class="navbar">
       <div class="container nav-wrapper">
-        <div class="logo">
+        
+        <a href="#" class="logo">
           <div class="logo-icon">
             <i data-lucide="library" width="24" height="24"></i>
           </div>
-          LibraryHub
-        </div>
-        <div class="nav-links">
+          <div class="logo-text">
+            <span>Library</span><span class="highlight">Hub</span>
+          </div>
+        </a>
+
+        <button class="menu-toggle" id="menu-toggle" aria-label="Open Menu">
+          <i data-lucide="menu" width="28" height="28"></i>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+          <button class="menu-close" id="menu-close" aria-label="Close Menu">
+            <i data-lucide="x" width="28" height="28"></i>
+          </button>
+
           <a href="#features" class="btn-text">Features</a>
           <a href="/student_portal.html" class="btn-text">Student Portal</a>
           <a href="/login/auth.html" class="btn btn-primary">
             Admin Login <i data-lucide="arrow-right" width="16"></i>
           </a>
         </div>
+        
+        <div class="menu-overlay" id="menu-overlay"></div>
       </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
       <div class="container hero-content">
         <h1>Unlock the World of Knowledge</h1>
@@ -56,7 +66,6 @@
       </div>
     </header>
 
-    <!-- Stats Section -->
     <div class="container stats-bar">
       <div class="stats-grid">
         <div class="stat-item">
@@ -74,7 +83,6 @@
       </div>
     </div>
 
-    <!-- Features Section -->
     <section id="features" class="features">
       <div class="container">
         <div class="section-header">
@@ -85,7 +93,6 @@
         </div>
 
         <div class="features-grid">
-          <!-- Feature 1 -->
           <div class="feature-card">
             <div class="feature-icon">
               <i data-lucide="book-open" width="28" height="28"></i>
@@ -97,7 +104,6 @@
             </p>
           </div>
 
-          <!-- Feature 2 -->
           <div class="feature-card">
             <div class="feature-icon">
               <i data-lucide="users" width="28" height="28"></i>
@@ -109,7 +115,6 @@
             </p>
           </div>
 
-          <!-- Feature 3 -->
           <div class="feature-card">
             <div class="feature-icon">
               <i data-lucide="activity" width="28" height="28"></i>
@@ -124,7 +129,6 @@
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
       <div class="container">
         <div class="footer-content">
@@ -144,9 +148,34 @@
       </div>
     </footer>
 
-    <!-- Initialize Icons -->
     <script>
       lucide.createIcons();
+
+      // Mobile Menu Logic
+      const menuToggle = document.getElementById('menu-toggle');
+      const menuClose = document.getElementById('menu-close');
+      const navLinks = document.getElementById('nav-links');
+      const menuOverlay = document.getElementById('menu-overlay');
+
+      function openMenu() {
+        navLinks.classList.add('active');
+        menuOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMenu() {
+        navLinks.classList.remove('active');
+        menuOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      if (menuToggle) menuToggle.addEventListener('click', openMenu);
+      if (menuClose) menuClose.addEventListener('click', closeMenu);
+      if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
+      
+      navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', closeMenu);
+      });
     </script>
   </body>
 </html>
